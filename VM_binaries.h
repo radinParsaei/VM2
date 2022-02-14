@@ -23,13 +23,13 @@ namespace VM_BINARIES {
     }
   };
 
-  void runBinFromStream(VMBinStream& in, VM vm) {
+  void runBinFromStream(VMBinStream& in, VM& vm) {
     Value program = Types::Array;
     char data = 0;
     bool dataAvailable = in.get(data);
     while (dataAvailable) {
       program.append((int)data);
-      if (data == OPCODE_PUT) {
+      if (data == OPCODE_PUT || data == OPCODE_SETVAR || data == OPCODE_GETVAR) {
         if (!in.get(data)) break;
         if (data == 0) {
           program.append(Types::Null);
@@ -81,7 +81,7 @@ namespace VM_BINARIES {
     bool dataAvailable = (bool)(bool)in.get(data);
     while (dataAvailable) {
       program.append((int)data);
-      if (data == OPCODE_PUT) {
+      if (data == OPCODE_PUT || data == OPCODE_SETVAR || data == OPCODE_GETVAR) {
         if (!in.get(data)) break;
         if (data == 0) {
           program.append(Types::Null);
@@ -199,7 +199,8 @@ namespace VM_BINARIES {
             continue;
         }
       }
-      if ((long) program[x] == OPCODE_PUT) {
+      long l = program[x];
+      if (l == OPCODE_PUT || l == OPCODE_SETVAR || l == OPCODE_GETVAR) {
         PUT_DATA = true;
       }
       res += (char) ((long) program[x]);

@@ -17,7 +17,10 @@
 #include "value.h"
 
 class VM {
+public:
     Value stack = Types::Array;
+    Value mem = Types::Map;
+    short rec = 0;
 
 public:
     VM();

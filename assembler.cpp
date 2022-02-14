@@ -6,47 +6,51 @@
 using namespace std;
 using namespace VM_BINARIES;
 
+void readValue(Value& prog, Value& line) {
+  line = line.trimLeft();
+  if (line.startsWith("NUM")) {
+    line = line.substring(3);
+    int i = 0;
+    while (!(isdigit(line[i].toString()[0]) || line[i].toString()[0] == '.' || line[i].toString()[0] == '-')) i++;
+    line = line.substring(i);
+    line = line.trim();
+    prog.append(NUMBER_FROM_STRING(line.toString().c_str()));
+  } else if (line.startsWith("TXT")) {
+    line = line.substring(3);
+    line.replace("\\n", "\n");
+    line.replace("\\\n", "\\n");
+    line.replace("\\t", "\t");
+    line.replace("\\\t", "\\t");
+    line.replace("\\r", "\r");
+    line.replace("\\\r", "\\r");
+    line.replace("\\a", "\a");
+    line.replace("\\\a", "\\a");
+    line.replace("\\b", "\b");
+    line.replace("\\\b", "\\b");
+    line.replace("\\f", "\f");
+    line.replace("\\\f", "\\f");
+    line.replace("\\\'", "\'");
+    line.replace("\\\"", "\"");
+    line.replace("\\\\", "\\");
+    prog.append(line);
+  } else if (line.startsWith("BOOL")) {
+    line = line.substring(4);
+    line = line.trim();
+    line.replace("1", "true");
+    line.replace("0", "false");
+    prog.append(line.toLower() == "true");
+  } else {
+    prog.append(Types::Null);
+  }
+}
+
 Value assemble(Value line) {
   Value prog = Types::Array;
   line = line.trimLeft();
   if (line.startsWith("PUT")) {
-    line = line.substring(3);
-    line = line.trimLeft();
     prog.append(OPCODE_PUT);
-    if (line.startsWith("NUM")) {
-      line = line.substring(3);
-      int i = 0;
-      while (!(isdigit(line[i].toString()[0]) || line[i].toString()[0] == '.' || line[i].toString()[0] == '-')) i++;
-      line = line.substring(i);
-      line = line.trim();
-      prog.append(NUMBER_FROM_STRING(line.toString().c_str()));
-    } else if (line.startsWith("TXT")) {
-      line = line.substring(3);
-      line.replace("\\n", "\n");
-      line.replace("\\\n", "\\n");
-      line.replace("\\t", "\t");
-      line.replace("\\\t", "\\t");
-      line.replace("\\r", "\r");
-      line.replace("\\\r", "\\r");
-      line.replace("\\a", "\a");
-      line.replace("\\\a", "\\a");
-      line.replace("\\b", "\b");
-      line.replace("\\\b", "\\b");
-      line.replace("\\f", "\f");
-      line.replace("\\\f", "\\f");
-      line.replace("\\\'", "\'");
-      line.replace("\\\"", "\"");
-      line.replace("\\\\", "\\");
-      prog.append(line);
-    } else if (line.startsWith("BOOL")) {
-      line = line.substring(4);
-      line = line.trim();
-      line.replace("1", "true");
-      line.replace("0", "false");
-      prog.append(line.toLower() == "true");
-    } else {
-      prog.append(Types::Null);
-    }
+    line = line.substring(3);
+    readValue(prog, line);
   } else if (line.startsWith("ADD")) {
     prog.append(OPCODE_ADD);
   } else if (line.startsWith("SUB")) {
@@ -55,8 +59,28 @@ Value assemble(Value line) {
     prog.append(OPCODE_MUL);
   } else if (line.startsWith("DIV")) {
     prog.append(OPCODE_DIV);
+  } else if (line.startsWith("MOD")) {
+    prog.append(OPCODE_MOD);
+  } else if (line.startsWith("POW")) {
+    prog.append(OPCODE_POW);
+  } else if (line.startsWith("SETVAR")) {
+    prog.append(OPCODE_SETVAR);
+    line = line.substring(6);
+    readValue(prog, line);
+  } else if (line.startsWith("GETVAR")) {
+    prog.append(OPCODE_GETVAR);
+    line = line.substring(6);
+    readValue(prog, line);
   } else if (line.startsWith("PRINT")) {
     prog.append(OPCODE_PRINT);
+  } else if (line.startsWith("IF")) {
+    prog.append(OPCODE_IF);
+  } else if (line.startsWith("WHILE")) {
+    prog.append(OPCODE_WHILE);
+  } else if (line.startsWith("REC")) {
+    prog.append(OPCODE_REC);
+  } else if (line.startsWith("END")) {
+    prog.append(OPCODE_END);
   }
   return prog;
 }
