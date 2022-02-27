@@ -11,10 +11,11 @@ void readValue(Value& prog, Value& line) {
   if (line.startsWith("NUM")) {
     line = line.substring(3);
     int i = 0;
-    while (!(isdigit(line[i].toString()[0]) || line[i].toString()[0] == '.' || line[i].toString()[0] == '-')) i++;
+    while (!(isdigit(line.charAt(i)) || line.charAt(i) == '.' || line.charAt(i) == '-')) i++;
     line = line.substring(i);
     line = line.trim();
-    prog.append(NUMBER_FROM_STRING(line.toString().c_str()));
+    prog.append(line.toString());
+    prog[prog.length() - 1].toNumber();
   } else if (line.startsWith("TXT")) {
     line = line.substring(3);
     line.replace("\\n", "\n");
@@ -81,6 +82,8 @@ Value assemble(Value line) {
     prog.append(OPCODE_REC);
   } else if (line.startsWith("END")) {
     prog.append(OPCODE_END);
+  } else if (line.startsWith("NEQ")) {
+    prog.append(OPCODE_NEQ);
   }
   return prog;
 }

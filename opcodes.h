@@ -15,5 +15,6 @@
 #define OPCODE_END              11
 #define OPCODE_IF               12
 #define OPCODE_WHILE            13
+#define OPCODE_NEQ              14
 
 #endif // OPCODES_H

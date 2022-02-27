@@ -16,6 +16,8 @@
 #endif
 #include "value.h"
 
+#define NEEDS_PARAMETER(opcode) opcode == OPCODE_PUT || opcode == OPCODE_GETVAR || opcode == OPCODE_SETVAR
+
 class VM {
 public:
     Value stack = Types::Array;
@@ -26,7 +28,5 @@ public:
     VM();
     bool run1(int opcode, const Value& data = Types::Null); // returns true if the data is used
     void run(const Value& program);
-    inline Value pop();
-    inline void put(const Value& v);
 };
 #endif // OPCODES_H

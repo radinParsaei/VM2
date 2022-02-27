@@ -9,9 +9,9 @@ using namespace VM_BINARIES;
 
 Value disassemble(int prog, Value val) {
   switch (prog) {
-    case OPCODE_PUT:     return TEXT(val.getType() == Types::Number? "PUT\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "PUT\tBOOL" : (val.getType() == Types::Text? "PUT\tTXT" : "PUT\t")) + val.toString();
-    case OPCODE_SETVAR:  return TEXT(val.getType() == Types::Number? "SETVAR\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "SETVAR\tBOOL" : (val.getType() == Types::Text? "SETVAR\tTXT" : "SETVAR\t")) + val.toString();
-    case OPCODE_GETVAR:  return TEXT(val.getType() == Types::Number? "GETVAR\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "GETVAR\tBOOL" : (val.getType() == Types::Text? "GETVAR\tTXT" : "GETVAR\t")) + val.toString();
+    case OPCODE_PUT:     return TEXT(IS_NUM(val)? "PUT\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "PUT\tBOOL" : (val.getType() == Types::Text? "PUT\tTXT" : "PUT\t")) + val.toString();
+    case OPCODE_SETVAR:  return TEXT(IS_NUM(val)? "SETVAR\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "SETVAR\tBOOL" : (val.getType() == Types::Text? "SETVAR\tTXT" : "SETVAR\t")) + val.toString();
+    case OPCODE_GETVAR:  return TEXT(IS_NUM(val)? "GETVAR\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "GETVAR\tBOOL" : (val.getType() == Types::Text? "GETVAR\tTXT" : "GETVAR\t")) + val.toString();
     case OPCODE_ADD:     return "ADD";
     case OPCODE_SUB:     return "SUB";
     case OPCODE_MUL:     return "MUL";
@@ -23,6 +23,7 @@ Value disassemble(int prog, Value val) {
     case OPCODE_IF:      return "IF";
     case OPCODE_WHILE:   return "WHILE";
     case OPCODE_PRINT:   return "PRINT";
+    case OPCODE_NEQ:     return "NEQ";
     default:             return "???";
     return 0;
   }

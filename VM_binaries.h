@@ -24,28 +24,27 @@ namespace VM_BINARIES {
   };
 
   void runBinFromStream(VMBinStream& in, VM& vm) {
-    Value program = Types::Array;
     char data = 0;
     bool dataAvailable = in.get(data);
     while (dataAvailable) {
-      program.append((int)data);
       if (data == OPCODE_PUT || data == OPCODE_SETVAR || data == OPCODE_GETVAR) {
+        short opcode = data;
         if (!in.get(data)) break;
         if (data == 0) {
-          program.append(Types::Null);
+          vm.run1(opcode, Types::Null);
         } else if (data == 1) {
-          program.append(Types::True);
+          vm.run1(opcode, Types::True);
         } else if (data == 2) {
-          program.append(Types::False);
+          vm.run1(opcode, Types::False);
         } else if ((data & 0b00000111) == 3 || (data & 0b00000111) == 4) { //small numbers
           bool isneg = (data & 0b00000111) - 3;
-          NUMBER n = (data & 0b11111000) >> 3;
+          Value n = (data & 0b11111000) >> 3;
           while (data != 0) {
             if (!in.get(data)) break;
             n += (unsigned char)data;
           }
           if (isneg) n = -n;
-          program.append(n);
+          vm.run1(opcode, n);
         } else if (data == 5) {
           TEXT s;
           while (true) {
@@ -56,9 +55,7 @@ namespace VM_BINARIES {
             }
             s += data;
           }
-          program.append(s);
-          vm.run(program);
-          program.clear();
+          vm.run1(opcode, s);
           continue;
         } else if (data == 6) {
           TEXT s;
@@ -66,11 +63,13 @@ namespace VM_BINARIES {
             if (!in.get(data)) break;
             s += data;
           }
-          program.append(NUMBER_FROM_STRING(s.c_str()));
+          Value v = s;
+          v.toNumber();
+          vm.run1(opcode, v);
         }
+      } else {
+        vm.run1(data);
       }
-      vm.run(program);
-      program.clear();
       dataAvailable = (bool)in.get(data);
     }
   }
@@ -91,7 +90,7 @@ namespace VM_BINARIES {
           program.append(Types::False);
         } else if ((data & 0b00000111) == 3 || (data & 0b00000111) == 4) { //small numbers
           bool isneg = (data & 0b00000111) - 3;
-          NUMBER n = (data & 0b11111000) >> 3;
+          Value n = (data & 0b11111000) >> 3;
           while (data != 0) {
             if (!in.get(data)) break;
             n += (unsigned char)data;
@@ -124,7 +123,7 @@ namespace VM_BINARIES {
     return program;
   }
 
-  TEXT mkBin(Value program) {
+  TEXT mkBin(const Value& program) {
     TEXT res;
     bool PUT_DATA = false;
     for (int x = 0; x < program.length(); x++) {
@@ -140,7 +139,8 @@ namespace VM_BINARIES {
           case Types::False:
             res += (char)2;
             continue;
-          case Types::Number: {
+          case Types::Number:
+          case Types::BigNumber: {
             NUMBER j = program[x].getNumber();
             if (j < 765 /* 3 * 255 (char size) */ && Value(program[x].toString()).indexOf(".") == -1) {
               char mode;
