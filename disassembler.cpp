@@ -23,6 +23,12 @@ Value disassemble(int prog, Value val) {
     case OPCODE_IF:      return "IF";
     case OPCODE_WHILE:   return "WHILE";
     case OPCODE_PRINT:   return "PRINT";
+    case OPCODE_GT:      return "GT";
+    case OPCODE_GE:      return "GE";
+    case OPCODE_LT:      return "LT";
+    case OPCODE_LE:      return "LE";
+    case OPCODE_POP:     return "POP";
+    case OPCODE_EQ:      return "EQ";
     case OPCODE_NEQ:     return "NEQ";
     default:             return "???";
     return 0;

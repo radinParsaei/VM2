@@ -46,6 +46,10 @@ bool VM::run1(int opcode, const Value& data) {
         stack[stack.length() - 1] += x;
         break;
     }
+    case OPCODE_POP: {
+        stack._pop();
+        break;
+    }
     case OPCODE_SUB: {
         const Value& x = stack.pop();
         stack[stack.length() - 1] -= x;
@@ -71,9 +75,34 @@ bool VM::run1(int opcode, const Value& data) {
         stack[stack.length() - 1].pow(x);
         break;
     }
+    case OPCODE_EQ: {
+        const Value& x = stack.pop();
+        stack[stack.length() - 1] = stack[stack.length() - 1] == x;
+        break;
+    }
     case OPCODE_NEQ: {
         const Value& x = stack.pop();
         stack[stack.length() - 1] = stack[stack.length() - 1] != x;
+        break;
+    }
+    case OPCODE_GT: {
+        const Value& x = stack.pop();
+        stack[stack.length() - 1] = stack[stack.length() - 1] > x;
+        break;
+    }
+    case OPCODE_GE: {
+        const Value& x = stack.pop();
+        stack[stack.length() - 1] = stack[stack.length() - 1] >= x;
+        break;
+    }
+    case OPCODE_LT: {
+        const Value& x = stack.pop();
+        stack[stack.length() - 1] = stack[stack.length() - 1] < x;
+        break;
+    }
+    case OPCODE_LE: {
+        const Value& x = stack.pop();
+        stack[stack.length() - 1] = stack[stack.length() - 1] <= x;
         break;
     }
     case OPCODE_SETVAR: {
@@ -129,7 +158,7 @@ bool VM::run1(int opcode, const Value& data) {
         }
 
         for (int i = 0; i < condLength; i++) {
-            if (condOpcodes[i] == OPCODE_PUT || condOpcodes[i] == OPCODE_GETVAR || condOpcodes[i] == OPCODE_SETVAR) {
+            if (NEEDS_PARAMETER(condOpcodes[i])) {
                 run1(condOpcodes[i], *(Value*) condOpcodes[i + 1]);
                 i++;
             } else {

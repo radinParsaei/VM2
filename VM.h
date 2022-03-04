@@ -19,7 +19,7 @@
 #define NEEDS_PARAMETER(opcode) opcode == OPCODE_PUT || opcode == OPCODE_GETVAR || opcode == OPCODE_SETVAR
 
 class VM {
-public:
+private:
     Value stack = Types::Array;
     Value mem = Types::Map;
     short rec = 0;

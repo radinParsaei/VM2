@@ -84,6 +84,18 @@ Value assemble(Value line) {
     prog.append(OPCODE_END);
   } else if (line.startsWith("NEQ")) {
     prog.append(OPCODE_NEQ);
+  } else if (line.startsWith("EQ")) {
+    prog.append(OPCODE_EQ);
+  } else if (line.startsWith("GT")) {
+    prog.append(OPCODE_GT);
+  } else if (line.startsWith("GE")) {
+    prog.append(OPCODE_GE);
+  } else if (line.startsWith("LT")) {
+    prog.append(OPCODE_LT);
+  } else if (line.startsWith("LE")) {
+    prog.append(OPCODE_LE);
+  } else if (line.startsWith("POP")) {
+    prog.append(OPCODE_POP);
   }
   return prog;
 }
