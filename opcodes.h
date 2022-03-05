@@ -15,12 +15,23 @@
 #define OPCODE_END              11
 #define OPCODE_IF               12
 #define OPCODE_WHILE            13
-#define OPCODE_NEQ              14
-#define OPCODE_EQ               15
-#define OPCODE_GT               16
-#define OPCODE_GE               17
-#define OPCODE_LT               18
-#define OPCODE_LE               19
-#define OPCODE_POP              20
+#define OPCODE_NEQ              14 // not equal (!=)
+#define OPCODE_EQ               15 // equal (==)
+#define OPCODE_GT               16 // greater than
+#define OPCODE_GE               17 // greater than or equal
+#define OPCODE_LT               18 // less than
+#define OPCODE_LE               19 // less than or equal
+#define OPCODE_LEQ              21 // looks equal
+#define OPCODE_AND              22 // AND (&&)
+#define OPCODE_OR               23 // OR (||)
+#define OPCODE_B_AND            24 // Bitwise AND (&)
+#define OPCODE_B_OR             25 // Bitwise OR (|)
+#define OPCODE_B_NOT            26 // Bitwise NOT (~)
+#define OPCODE_NOT              27 // NOT (!)
+#define OPCODE_LSHIFT           28 // left shift (<<)
+#define OPCODE_RSHIFT           29 // right shift (>>)
+#define OPCODE_XOR              30 // XOR (^)
+#define OPCODE_NEGATE           31 // negate (-)
+#define OPCODE_POP              32
 
 #endif // OPCODES_H

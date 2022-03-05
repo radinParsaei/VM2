@@ -30,6 +30,17 @@ Value disassemble(int prog, Value val) {
     case OPCODE_POP:     return "POP";
     case OPCODE_EQ:      return "EQ";
     case OPCODE_NEQ:     return "NEQ";
+    case OPCODE_LEQ:     return "LEQ";
+    case OPCODE_AND:     return "AND";
+    case OPCODE_OR:      return "OR";
+    case OPCODE_B_OR:    return "BOR";
+    case OPCODE_B_AND:   return "BAND";
+    case OPCODE_B_NOT:   return "BNOT";
+    case OPCODE_NOT:     return "NOT";
+    case OPCODE_LSHIFT:  return "LSHIFT";
+    case OPCODE_RSHIFT:  return "RSHIFT";
+    case OPCODE_XOR:     return "XOR";
+    case OPCODE_NEGATE:  return "NEGATE";
     default:             return "???";
     return 0;
   }

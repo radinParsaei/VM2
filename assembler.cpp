@@ -96,6 +96,28 @@ Value assemble(Value line) {
     prog.append(OPCODE_LE);
   } else if (line.startsWith("POP")) {
     prog.append(OPCODE_POP);
+  } else if (line.startsWith("LEQ")) {
+    prog.append(OPCODE_LEQ);
+  } else if (line.startsWith("AND")) {
+    prog.append(OPCODE_AND);
+  } else if (line.startsWith("OR")) {
+    prog.append(OPCODE_OR);
+  } else if (line.startsWith("BOR")) {
+    prog.append(OPCODE_B_OR);
+  } else if (line.startsWith("BAND")) {
+    prog.append(OPCODE_B_AND);
+  } else if (line.startsWith("BNOT")) {
+    prog.append(OPCODE_B_NOT);
+  } else if (line.startsWith("NOT")) {
+    prog.append(OPCODE_NOT);
+  } else if (line.startsWith("LSHIFT")) {
+    prog.append(OPCODE_LSHIFT);
+  } else if (line.startsWith("RSHIFT")) {
+    prog.append(OPCODE_RSHIFT);
+  } else if (line.startsWith("XOR")) {
+    prog.append(OPCODE_XOR);
+  } else if (line.startsWith("NEGATE")) {
+    prog.append(OPCODE_NEGATE);
   }
   return prog;
 }

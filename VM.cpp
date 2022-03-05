@@ -105,6 +105,58 @@ bool VM::run1(int opcode, const Value& data) {
         stack[stack.length() - 1] = stack[stack.length() - 1] <= x;
         break;
     }
+    case OPCODE_LEQ: {
+        const Value& x = stack.pop();
+        stack[stack.length() - 1] = stack[stack.length() - 1].looksEqual(x);
+        break;
+    }
+    case OPCODE_AND: {
+        const Value& x = stack.pop();
+        stack[stack.length() - 1] = stack[stack.length() - 1] && x;
+        break;
+    }
+    case OPCODE_OR: {
+        const Value& x = stack.pop();
+        stack[stack.length() - 1] = stack[stack.length() - 1] || x;
+        break;
+    }
+    case OPCODE_B_OR: {
+        const Value& x = stack.pop();
+        stack[stack.length() - 1] |= x;
+        break;
+    }
+    case OPCODE_B_AND: {
+        const Value& x = stack.pop();
+        stack[stack.length() - 1] &= x;
+        break;
+    }
+    case OPCODE_B_NOT: {
+        stack[stack.length() - 1] = ~stack[stack.length() - 1];
+        break;
+    }
+    case OPCODE_NEGATE: {
+        stack[stack.length() - 1] = -stack[stack.length() - 1];
+        break;
+    }
+    case OPCODE_NOT: {
+        stack[stack.length() - 1] = !stack[stack.length() - 1];
+        break;
+    }
+    case OPCODE_LSHIFT: {
+        const Value& x = stack.pop();
+        stack[stack.length() - 1] <<= x;
+        break;
+    }
+    case OPCODE_RSHIFT: {
+        const Value& x = stack.pop();
+        stack[stack.length() - 1] >>= x;
+        break;
+    }
+    case OPCODE_XOR: {
+        const Value& x = stack.pop();
+        stack[stack.length() - 1] ^= x;
+        break;
+    }
     case OPCODE_SETVAR: {
         mem.put(data, stack.pop());
         return true;
