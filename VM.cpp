@@ -23,16 +23,16 @@ bool VM::run1(int opcode, const Value& data) {
         rec--;
     }
     if (rec > 0) {
-        stack[stack.length() - 1].append(opcode);
+        stack[stack.length() - 1].append(opcode, false);
         if (NEEDS_PARAMETER(opcode)) {
-            stack[stack.length() - 1].append(data);
+            stack[stack.length() - 1].append(data, false);
             return true;
         }
         return false;
     }
     switch (opcode) {
     case OPCODE_PUT: // append data to stack
-        stack.append(data);
+        stack.append(data, false);
         return true;
     case OPCODE_PRINT:
 #if __has_include("Arduino.h")
@@ -162,12 +162,64 @@ bool VM::run1(int opcode, const Value& data) {
         return true;
     }
     case OPCODE_GETVAR: {
-        stack.append(mem.get(data));
+        const Value& v = mem.get(data);
+        bool clone = !(v.getType() == Types::Array || v.getType() == Types::Map);
+        stack.append(v, clone);
         return true;
+    }
+    case OPCODE_CREATE_ARR: {
+        Value arr(Types::Array);
+        long l = data;
+        for (int i = 0; i < l; i++) {
+            arr.append(stack.pop(), false);
+        }
+        stack.append(arr, false);
+        return true;
+    }
+    case OPCODE_CREATE_MAP: {
+        Value map(Types::Map);
+        long l = data;
+        for (int i = 0; i < l; i++) {
+            const Value& v = stack.pop(); // value
+            const Value& k = stack.pop(); // key
+            map.set(k, v);
+        }
+        stack.append(map, false);
+        return true;
+    }
+    case OPCODE_GET: {
+        const Value& i = stack.pop();
+        const Value& arr = stack.pop();
+        const Value& v = arr[i];
+        bool clone = !(v.getType() == Types::Array || v.getType() == Types::Map);
+        stack.append(v, clone);
+        break;
+    }
+    case OPCODE_SET: {
+        const Value& v = stack.pop(); // value
+        const Value& i = stack.pop(); // index
+        // func test() {
+        //     print(1)
+        //     return 0
+        // }
+        // func test1() {
+        //     print(2)
+        //     return 0
+        // }
+        // a = []
+        // a[test()] = test1()
+        //
+        // Result:
+        //   1
+        //   2
+        Value& arr = stack[stack.length() - 1];
+        arr.copyBeforeModification = false;
+        arr[i] = v;
+        break;
     }
     case OPCODE_REC: {
         if (rec++ == 0) { // rec was 0
-            stack.unsafeAppend(Types::Array);
+            stack.append(Types::Array, false);
         }
         break;
     }
@@ -220,7 +272,7 @@ bool VM::run1(int opcode, const Value& data) {
 
         while (stack.pop()) {
             for (int i = 0; i < progLength; i++) {
-                if (progOpcodes[i] == OPCODE_PUT || progOpcodes[i] == OPCODE_GETVAR || progOpcodes[i] == OPCODE_SETVAR) {
+                if (NEEDS_PARAMETER(progOpcodes[i])) {
                     run1(progOpcodes[i], *(Value*) progOpcodes[i + 1]);
                     i++;
                 } else {
@@ -228,7 +280,7 @@ bool VM::run1(int opcode, const Value& data) {
                 }
             }
             for (int i = 0; i < condLength; i++) {
-                if (condOpcodes[i] == OPCODE_PUT || condOpcodes[i] == OPCODE_GETVAR || condOpcodes[i] == OPCODE_SETVAR) {
+                if (NEEDS_PARAMETER(condOpcodes[i])) {
                     run1(condOpcodes[i], *(Value*) condOpcodes[i + 1]);
                     i++;
                 } else {

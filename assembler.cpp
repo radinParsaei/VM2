@@ -88,6 +88,8 @@ Value assemble(Value line) {
     prog.append(OPCODE_EQ);
   } else if (line.startsWith("GT")) {
     prog.append(OPCODE_GT);
+  } else if (line.startsWith("GET")) {
+    prog.append(OPCODE_GET);
   } else if (line.startsWith("GE")) {
     prog.append(OPCODE_GE);
   } else if (line.startsWith("LT")) {
@@ -118,6 +120,16 @@ Value assemble(Value line) {
     prog.append(OPCODE_XOR);
   } else if (line.startsWith("NEGATE")) {
     prog.append(OPCODE_NEGATE);
+  } else if (line.startsWith("CREATE_ARR")) {
+    prog.append(OPCODE_CREATE_ARR);
+    line = line.substring(10);
+    readValue(prog, line);
+  } else if (line.startsWith("CREATE_MAP")) {
+    prog.append(OPCODE_CREATE_MAP);
+    line = line.substring(10);
+    readValue(prog, line);
+  } else if (line.startsWith("SET")) {
+    prog.append(OPCODE_SET);
   }
   return prog;
 }
@@ -142,7 +154,6 @@ int main(int argc, char const **argv) {
   string line;
   while (getline(fin, line)) {
     Value a = assemble(line);
-    a.freeMemory = false;
     for (int i = 0; i < a.length(); i++) {
       prog.append(a[i]);
     }

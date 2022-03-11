@@ -33,5 +33,9 @@
 #define OPCODE_XOR              30 // XOR (^)
 #define OPCODE_NEGATE           31 // negate (-)
 #define OPCODE_POP              32
+#define OPCODE_CREATE_ARR       33 // create array
+#define OPCODE_GET              34 // get from array (arr[index])
+#define OPCODE_SET              35 // set to array (arr[index] = value)
+#define OPCODE_CREATE_MAP       36 // create map
 
 #endif // OPCODES_H
