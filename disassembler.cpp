@@ -14,6 +14,7 @@ Value disassemble(int prog, Value val) {
     case OPCODE_GETVAR:       return TEXT(IS_NUM(val)? "GETVAR\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "GETVAR\tBOOL" : (val.getType() == Types::Text? "GETVAR\tTXT" : "GETVAR\t")) + val.toString();
     case OPCODE_CREATE_ARR:   return TEXT(IS_NUM(val)? "CREATE_ARR\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "CREATE_ARR\tBOOL" : (val.getType() == Types::Text? "CREATE_ARR\tTXT" : "CREATE_ARR\t")) + val.toString();
     case OPCODE_CREATE_MAP:   return TEXT(IS_NUM(val)? "CREATE_MAP\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "CREATE_MAP\tBOOL" : (val.getType() == Types::Text? "CREATE_MAP\tTXT" : "CREATE_MAP\t")) + val.toString();
+    case OPCODE_INCREASE:     return TEXT(IS_NUM(val)? "INCREASE\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "INCREASE\tBOOL" : (val.getType() == Types::Text? "INCREASE\tTXT" : "INCREASE\t")) + val.toString();
     case OPCODE_ADD:          return "ADD";
     case OPCODE_SUB:          return "SUB";
     case OPCODE_MUL:          return "MUL";

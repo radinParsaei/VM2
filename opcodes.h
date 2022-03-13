@@ -37,5 +37,6 @@
 #define OPCODE_GET              34 // get from array (arr[index])
 #define OPCODE_SET              35 // set to array (arr[index] = value)
 #define OPCODE_CREATE_MAP       36 // create map
+#define OPCODE_INCREASE         37 // create map
 
 #endif // OPCODES_H

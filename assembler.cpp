@@ -130,6 +130,10 @@ Value assemble(Value line) {
     readValue(prog, line);
   } else if (line.startsWith("SET")) {
     prog.append(OPCODE_SET);
+  } else if (line.startsWith("INCREASE")) {
+    prog.append(OPCODE_INCREASE);
+    line = line.substring(8);
+    readValue(prog, line);
   }
   return prog;
 }

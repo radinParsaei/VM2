@@ -23,181 +23,185 @@ bool VM::run1(int opcode, const Value& data) {
         rec--;
     }
     if (rec > 0) {
-        stack[stack.length() - 1].append(opcode, false);
+        stackTOP.append(opcode, false);
         if (NEEDS_PARAMETER(opcode)) {
-            stack[stack.length() - 1].append(data, false);
+            stackTOP.append(data, false);
             return true;
         }
         return false;
     }
     switch (opcode) {
     case OPCODE_PUT: // append data to stack
-        stack.append(data, false);
+        append(data, false);
         return true;
     case OPCODE_PRINT:
 #if __has_include("Arduino.h")
-        Serial.print(stack.pop().toString());
+        Serial.print(pop().toString());
 #else
-        std::cout << stack.pop().toString();
+        std::cout << pop().toString();
 #endif
         break;
     case OPCODE_ADD: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] += x;
+        const Value& x = pop();
+        stackTOP += x;
         break;
     }
     case OPCODE_POP: {
-        stack._pop();
+        _POP_
         break;
     }
     case OPCODE_SUB: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] -= x;
+        const Value& x = pop();
+        stackTOP -= x;
         break;
     }
     case OPCODE_MUL: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] *= x;
+        const Value& x = pop();
+        stackTOP *= x;
         break;
     }
     case OPCODE_DIV: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] /= x;
+        const Value& x = pop();
+        stackTOP /= x;
         break;
     }
     case OPCODE_MOD: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] %= x;
+        const Value& x = pop();
+        stackTOP %= x;
         break;
     }
     case OPCODE_POW: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1].pow(x);
+        const Value& x = pop();
+        stackTOP.pow(x);
         break;
     }
     case OPCODE_EQ: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] = stack[stack.length() - 1] == x;
+        const Value& x = pop();
+        stackTOP = stackTOP == x;
         break;
     }
     case OPCODE_NEQ: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] = stack[stack.length() - 1] != x;
+        const Value& x = pop();
+        stackTOP = stackTOP != x;
         break;
     }
     case OPCODE_GT: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] = stack[stack.length() - 1] > x;
+        const Value& x = pop();
+        stackTOP = stackTOP > x;
         break;
     }
     case OPCODE_GE: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] = stack[stack.length() - 1] >= x;
+        const Value& x = pop();
+        stackTOP = stackTOP >= x;
         break;
     }
     case OPCODE_LT: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] = stack[stack.length() - 1] < x;
+        const Value& x = pop();
+        stackTOP = stackTOP < x;
         break;
     }
     case OPCODE_LE: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] = stack[stack.length() - 1] <= x;
+        const Value& x = pop();
+        stackTOP = stackTOP <= x;
         break;
     }
     case OPCODE_LEQ: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] = stack[stack.length() - 1].looksEqual(x);
+        const Value& x = pop();
+        stackTOP = stackTOP.looksEqual(x);
         break;
     }
     case OPCODE_AND: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] = stack[stack.length() - 1] && x;
+        const Value& x = pop();
+        stackTOP = stackTOP && x;
         break;
     }
     case OPCODE_OR: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] = stack[stack.length() - 1] || x;
+        const Value& x = pop();
+        stackTOP = stackTOP || x;
         break;
     }
     case OPCODE_B_OR: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] |= x;
+        const Value& x = pop();
+        stackTOP |= x;
         break;
     }
     case OPCODE_B_AND: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] &= x;
+        const Value& x = pop();
+        stackTOP &= x;
         break;
     }
     case OPCODE_B_NOT: {
-        stack[stack.length() - 1] = ~stack[stack.length() - 1];
+        stackTOP = ~stackTOP;
         break;
     }
     case OPCODE_NEGATE: {
-        stack[stack.length() - 1] = -stack[stack.length() - 1];
+        stackTOP = -stackTOP;
         break;
     }
     case OPCODE_NOT: {
-        stack[stack.length() - 1] = !stack[stack.length() - 1];
+        stackTOP = !stackTOP;
         break;
     }
     case OPCODE_LSHIFT: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] <<= x;
+        const Value& x = pop();
+        stackTOP <<= x;
         break;
     }
     case OPCODE_RSHIFT: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] >>= x;
+        const Value& x = pop();
+        stackTOP >>= x;
         break;
     }
     case OPCODE_XOR: {
-        const Value& x = stack.pop();
-        stack[stack.length() - 1] ^= x;
+        const Value& x = pop();
+        stackTOP ^= x;
         break;
     }
     case OPCODE_SETVAR: {
-        mem.put(data, stack.pop());
+        mem.put(data, pop());
         return true;
     }
     case OPCODE_GETVAR: {
         const Value& v = mem.get(data);
         bool clone = !(v.getType() == Types::Array || v.getType() == Types::Map);
-        stack.append(v, clone);
+        append(v, clone);
+        return true;
+    }
+    case OPCODE_INCREASE: {
+        mem.get(data) += pop();
         return true;
     }
     case OPCODE_CREATE_ARR: {
         Value arr(Types::Array);
         long l = data;
         for (int i = 0; i < l; i++) {
-            arr.append(stack.pop(), false);
+            arr.append(pop(), false);
         }
-        stack.append(arr, false);
+        append(arr, false);
         return true;
     }
     case OPCODE_CREATE_MAP: {
         Value map(Types::Map);
         long l = data;
         for (int i = 0; i < l; i++) {
-            const Value& v = stack.pop(); // value
-            const Value& k = stack.pop(); // key
+            const Value& v = pop(); // value
+            const Value& k = pop(); // key
             map.set(k, v);
         }
-        stack.append(map, false);
+        append(map, false);
         return true;
     }
     case OPCODE_GET: {
-        const Value& i = stack.pop();
-        const Value& arr = stack.pop();
+        const Value& i = pop();
+        const Value& arr = pop();
         const Value& v = arr[i];
         bool clone = !(v.getType() == Types::Array || v.getType() == Types::Map);
-        stack.append(v, clone);
+        append(v, clone);
         break;
     }
     case OPCODE_SET: {
-        const Value& v = stack.pop(); // value
-        const Value& i = stack.pop(); // index
+        const Value& v = pop(); // value
+        const Value& i = pop(); // index
         // func test() {
         //     print(1)
         //     return 0
@@ -212,25 +216,25 @@ bool VM::run1(int opcode, const Value& data) {
         // Result:
         //   1
         //   2
-        Value& arr = stack[stack.length() - 1];
+        Value& arr = stackTOP;
         arr.copyBeforeModification = false;
         arr[i] = v;
         break;
     }
     case OPCODE_REC: {
         if (rec++ == 0) { // rec was 0
-            stack.append(Types::Array, false);
+            append(Types::Array, false);
         }
         break;
     }
     case OPCODE_IF: {
-        if (stack.pop())
-            run(stack.pop());
+        if (pop())
+            run(pop());
         break;
     }
     case OPCODE_WHILE: {
-        const Value& cond = stack.pop();
-        const Value& prog = stack.pop();
+        const Value& cond = pop();
+        const Value& prog = pop();
         int condLength = cond.length();
         int progLength = prog.length();
         unsigned long condOpcodes[condLength];
@@ -270,7 +274,7 @@ bool VM::run1(int opcode, const Value& data) {
             }
         }
 
-        while (stack.pop()) {
+        while (pop()) {
             for (int i = 0; i < progLength; i++) {
                 if (NEEDS_PARAMETER(progOpcodes[i])) {
                     run1(progOpcodes[i], *(Value*) progOpcodes[i + 1]);
