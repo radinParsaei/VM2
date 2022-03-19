@@ -88,6 +88,10 @@ Value assemble(Value line) {
     prog.append(OPCODE_EQ);
   } else if (line.startsWith("GT")) {
     prog.append(OPCODE_GT);
+  } else if (line.startsWith("GETPARAM")) {
+    prog.append(OPCODE_GETPARAM);
+    line = line.substring(8);
+    readValue(prog, line);
   } else if (line.startsWith("GET")) {
     prog.append(OPCODE_GET);
   } else if (line.startsWith("GE")) {
@@ -132,6 +136,18 @@ Value assemble(Value line) {
     prog.append(OPCODE_SET);
   } else if (line.startsWith("INCREASE")) {
     prog.append(OPCODE_INCREASE);
+    line = line.substring(8);
+    readValue(prog, line);
+  } else if (line.startsWith("MKFUNC")) {
+    prog.append(OPCODE_MKFUNC);
+    line = line.substring(6);
+    readValue(prog, line);
+  } else if (line.startsWith("CALLFUNC")) {
+    prog.append(OPCODE_CALLFUNC);
+    line = line.substring(8);
+    readValue(prog, line);
+  } else if (line.startsWith("CALLFUNC")) {
+    prog.append(OPCODE_CALLFUNC);
     line = line.substring(8);
     readValue(prog, line);
   }

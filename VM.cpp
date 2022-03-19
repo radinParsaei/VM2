@@ -12,8 +12,14 @@ VM::VM() {
 
 void VM::run(const Value& program) {
     if (program.getType() == Types::Array) {
-        for (int i = 0; i < program.length(); i++) {
-            if (run1((int) program[i], i != (program.length() - 1)? program[i + 1] : Types::Null)) i++;
+        size_t s = program.length();
+        for (int i = 0; i < s; i++) {
+            if (NEEDS_PARAMETER((int) program[i])) {
+                run1((int) program[i], program[i + 1]);
+                i++;
+            } else {
+                run1((int) program[i]);
+            }
         }
     }
 }
@@ -294,6 +300,88 @@ bool VM::run1(int opcode, const Value& data) {
         }
         break;
     }
+    case OPCODE_MKFUNC: {
+        const Value& paramCount = pop();
+        const Value& body = pop();
+#ifndef USE_ARDUINO_ARRAY
+        size_t length = body.length();
+        unsigned long* opcodes = new unsigned long[length + 2];
+        opcodes[length + 1] = 0;
+        opcodes[0] = (int) paramCount;
+        bool isData = false;
+        for (int i = 1; i < (length + 1); i++) {
+            const Value& item = body[i - 1];
+            if (!isData) {
+                opcodes[i] = (int) item;
+                if (NEEDS_PARAMETER(opcodes[i])) {
+                    isData = true;
+                }
+            } else {
+                opcodes[i] = (unsigned long) new Value(item.getData(), item.getType(), item.useCount);
+                isData = false;
+            }
+        }
+        functions[data] = opcodes;
+#else
+        body.append(paramCount, false);
+        functions.put(data, body);
+#endif
+        return true;
+    }
+    case OPCODE_CALLFUNC: {
+#ifndef USE_ARDUINO_ARRAY
+        unsigned long* prog = functions[data];
+        short l = prog[0];
+        for (short i = 0; i < l; i++) {
+            params.append(pop(), false);
+        }
+        size_t i = 1;
+        while (true) {
+            if (prog[i] == 0) break;
+            if (NEEDS_PARAMETER(prog[i])) {
+                run1(prog[i], *(Value*) prog[i + 1]);
+                i++;
+            } else {
+                run1(prog[i]);
+            }
+            i++;
+        }
+#else
+        const Value& prog = functions[data];
+        short l = (int) prog.pop();
+        for (int i = 0; i < l; i++) {
+            params.append(pop(), false);
+        }
+        run(prog);
+#endif
+        if (l) params.remove(params.length() - l, params.length());
+        return true;
+    }
+    case OPCODE_GETPARAM: {
+        append(params[params.length() - (long) data], false);
+        return true;
+    }
     }
     return false;
+}
+
+VM::~VM() {
+#ifndef USE_ARDUINO_ARRAY
+    bool data = false;
+    for (auto& i : functions) {
+        int x = 1;
+        while (true) {
+            if (data) {
+                data = false;
+                delete ((Value*) i.second[x]);
+            }
+            if (i.second[x] == 0) break;
+            if (NEEDS_PARAMETER(i.second[x])) {
+                data = true;
+            }
+            x++;
+        }
+        delete[] i.second;
+    }
+#endif
 }

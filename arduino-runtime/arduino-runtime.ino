@@ -13,21 +13,32 @@ void setup() {
   runBinFromStream(*st, vm);
   free(st);
   Serial.println();
-  // Serial.println();
-  // vm.run1(OPCODE_PUT, 0);
-  // vm.run1(OPCODE_SETVAR, 0);
-  // vm.run1(OPCODE_REC);
-  // vm.run1(OPCODE_PUT, "LOOP WORKS!!!\r\n");
-  // vm.run1(OPCODE_PRINT);
-  // vm.run1(OPCODE_END);
-  // vm.run1(OPCODE_REC);
-  // vm.run1(OPCODE_PUT, 1);
-  // vm.run1(OPCODE_INCREASE, 0);
-  // vm.run1(OPCODE_GETVAR, 0);
-  // vm.run1(OPCODE_PUT, 10);
-  // vm.run1(OPCODE_NEQ);
-  // vm.run1(OPCODE_END);
-  // vm.run1(OPCODE_WHILE);
+  Serial.println();
+  vm.run1(OPCODE_PUT, 0);
+  vm.run1(OPCODE_SETVAR, 0);
+  vm.run1(OPCODE_REC);
+  vm.run1(OPCODE_PUT, "LOOP WORKS!!!\r\n");
+  vm.run1(OPCODE_PRINT);
+  vm.run1(OPCODE_END);
+  vm.run1(OPCODE_REC);
+  vm.run1(OPCODE_PUT, 1);
+  vm.run1(OPCODE_INCREASE, 0);
+  vm.run1(OPCODE_GETVAR, 0);
+  vm.run1(OPCODE_PUT, 10);
+  vm.run1(OPCODE_NEQ);
+  vm.run1(OPCODE_END);
+  vm.run1(OPCODE_WHILE);
+
+  Serial.println();
+
+  vm.run1(OPCODE_REC);
+  vm.run1(OPCODE_GETPARAM, 1);
+  vm.run1(OPCODE_PRINT);
+  vm.run1(OPCODE_END);
+  vm.run1(OPCODE_PUT, 1);
+  vm.run1(OPCODE_MKFUNC, "a");
+  vm.run1(OPCODE_PUT, "FUNCTION WORKS!!!\r\n");
+  vm.run1(OPCODE_CALLFUNC, "a");
 }
 
 void loop() {
