@@ -18,6 +18,10 @@
 #endif
 #include "value.h"
 
+#define FLOW_CONTROL_CONTINUE       0b00000001
+#define FLOW_CONTROL_BREAK          0b00000010
+#define FLOW_CONTROL_RETURN         0b00000100
+
 #define NEEDS_PARAMETER(opcode) opcode == OPCODE_PUT || opcode == OPCODE_GETVAR || opcode == OPCODE_SETVAR || opcode == OPCODE_CREATE_ARR || opcode == OPCODE_CREATE_MAP || opcode == OPCODE_INCREASE || opcode == OPCODE_MKFUNC || opcode == OPCODE_CALLFUNC || opcode == OPCODE_GETPARAM
 
 class VM {
@@ -35,8 +39,9 @@ private:
 #define _POP_ stack._pop();
 #endif
     Value mem = Types::Map;
-    short rec = 0;
+    char rec = 0;
     Value params = Types::Array; // holds function parameters
+    char flowControlFalgs = 0;
 public:
     VM();
     bool run1(int opcode, const Value& data = Types::Null); // returns true if the data is used

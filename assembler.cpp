@@ -150,6 +150,12 @@ Value assemble(Value line) {
     prog.append(OPCODE_CALLFUNC);
     line = line.substring(8);
     readValue(prog, line);
+  } else if (line.startsWith("BREAK")) {
+    prog.append(OPCODE_BREAK);
+  } else if (line.startsWith("CONTINUE")) {
+    prog.append(OPCODE_CONTINUE);
+  } else if (line.startsWith("RET")) { // RETURN, RET
+    prog.append(OPCODE_RETURN);
   }
   return prog;
 }

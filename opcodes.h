@@ -39,7 +39,10 @@
 #define OPCODE_CREATE_MAP       36 // create map
 #define OPCODE_INCREASE         37 // increase variable
 #define OPCODE_MKFUNC           38 // create function
-#define OPCODE_CALLFUNC         39 // create function
+#define OPCODE_CALLFUNC         39 // call function
 #define OPCODE_GETPARAM         40 // get function parameter
+#define OPCODE_CONTINUE         41 // continue loop
+#define OPCODE_BREAK            42 // break loop
+#define OPCODE_RETURN           43 // break function (return)
 
 #endif // OPCODES_H

@@ -49,6 +49,9 @@ Value disassemble(int prog, Value val) {
     case OPCODE_NEGATE:       return "NEGATE";
     case OPCODE_GET:          return "GET";
     case OPCODE_SET:          return "SET";
+    case OPCODE_BREAK:        return "BREAK";
+    case OPCODE_CONTINUE:     return "CONTINUE";
+    case OPCODE_RETURN:       return "RETURN";
     default:                  return "???";
     return 0;
   }

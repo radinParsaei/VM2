@@ -20,16 +20,24 @@ void VM::run(const Value& program) {
             } else {
                 run1((int) program[i]);
             }
+            if (flowControlFalgs) { // if any of flags is set, break (continue, break, return)
+                break;
+            }
         }
     }
 }
 
 bool VM::run1(int opcode, const Value& data) {
-    if (opcode == OPCODE_END) {
-        rec--;
-    }
     if (rec > 0) {
-        stackTOP.append(opcode, false);
+        if (opcode != OPCODE_END || (rec - 1)) stackTOP.append(opcode, false);
+        if (opcode == OPCODE_END) {
+            rec--;
+            return false;
+        }
+        if (opcode == OPCODE_REC) {
+            rec++;
+            return false;
+        }
         if (NEEDS_PARAMETER(opcode)) {
             stackTOP.append(data, false);
             return true;
@@ -234,8 +242,12 @@ bool VM::run1(int opcode, const Value& data) {
         break;
     }
     case OPCODE_IF: {
-        if (pop())
-            run(pop());
+        if (pop()) {
+            const Value& v = pop();
+            run(v);
+        } else {
+            pop();
+        }
         break;
     }
     case OPCODE_WHILE: {
@@ -288,7 +300,17 @@ bool VM::run1(int opcode, const Value& data) {
                 } else {
                     run1(progOpcodes[i]);
                 }
+                if (flowControlFalgs & FLOW_CONTROL_CONTINUE) {
+                    flowControlFalgs &= ~FLOW_CONTROL_CONTINUE;
+                    goto continue_;
+                }
+                if (flowControlFalgs & FLOW_CONTROL_BREAK) {
+                    flowControlFalgs &= ~FLOW_CONTROL_BREAK;
+                    return false;
+                }
+                if (flowControlFalgs) return false;
             }
+            continue_:
             for (int i = 0; i < condLength; i++) {
                 if (NEEDS_PARAMETER(condOpcodes[i])) {
                     run1(condOpcodes[i], *(Value*) condOpcodes[i + 1]);
@@ -344,6 +366,10 @@ bool VM::run1(int opcode, const Value& data) {
             } else {
                 run1(prog[i]);
             }
+            if (flowControlFalgs & FLOW_CONTROL_RETURN) {
+                flowControlFalgs &= ~FLOW_CONTROL_RETURN;
+                return true;
+            }
             i++;
         }
 #else
@@ -361,6 +387,15 @@ bool VM::run1(int opcode, const Value& data) {
         append(params[params.length() - (long) data], false);
         return true;
     }
+    case OPCODE_RETURN:
+        flowControlFalgs |= FLOW_CONTROL_RETURN;
+        break;
+    case OPCODE_CONTINUE:
+        flowControlFalgs |= FLOW_CONTROL_CONTINUE;
+        break;
+    case OPCODE_BREAK:
+        flowControlFalgs |= FLOW_CONTROL_BREAK;
+        break;
     }
     return false;
 }
