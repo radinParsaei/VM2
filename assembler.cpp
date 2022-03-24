@@ -74,8 +74,18 @@ Value assemble(Value line) {
     readValue(prog, line);
   } else if (line.startsWith("PRINT")) {
     prog.append(OPCODE_PRINT);
-  } else if (line.startsWith("IF")) {
-    prog.append(OPCODE_IF);
+  // } else if (line.startsWith("IF")) {
+  //   prog.append(OPCODE_IF);
+  } else if (line.startsWith("SKIPIFN")) {
+    prog.append(OPCODE_SKIPIFN);
+    line = line.substring(7);
+    readValue(prog, line);
+  // } else if (line.startsWith("SKIPIF")) {
+  //   prog.append(OPCODE_SKIPIF);
+  //   line = line.substring(6);
+  //   readValue(prog, line);
+  } else if (line.startsWith("WHILET")) {
+    prog.append(OPCODE_WHILET);
   } else if (line.startsWith("WHILE")) {
     prog.append(OPCODE_WHILE);
   } else if (line.startsWith("REC")) {
@@ -149,6 +159,10 @@ Value assemble(Value line) {
   } else if (line.startsWith("CALLFUNC")) {
     prog.append(OPCODE_CALLFUNC);
     line = line.substring(8);
+    readValue(prog, line);
+  } else if (line.startsWith("SKIP")) {
+    prog.append(OPCODE_SKIP);
+    line = line.substring(5);
     readValue(prog, line);
   } else if (line.startsWith("BREAK")) {
     prog.append(OPCODE_BREAK);

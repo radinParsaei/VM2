@@ -22,12 +22,15 @@
 #define FLOW_CONTROL_BREAK          0b00000010
 #define FLOW_CONTROL_RETURN         0b00000100
 
-#define NEEDS_PARAMETER(opcode) opcode == OPCODE_PUT || opcode == OPCODE_GETVAR || opcode == OPCODE_SETVAR || opcode == OPCODE_CREATE_ARR || opcode == OPCODE_CREATE_MAP || opcode == OPCODE_INCREASE || opcode == OPCODE_MKFUNC || opcode == OPCODE_CALLFUNC || opcode == OPCODE_GETPARAM
+#define NEEDS_PARAMETER(opcode) opcode == OPCODE_PUT || opcode == OPCODE_GETVAR || opcode == OPCODE_SETVAR || opcode == OPCODE_CREATE_ARR || opcode == OPCODE_CREATE_MAP || opcode == OPCODE_INCREASE || opcode == OPCODE_MKFUNC || opcode == OPCODE_CALLFUNC || opcode == OPCODE_GETPARAM || opcode == OPCODE_SKIPIFN || opcode == OPCODE_SKIP
 
 class VM {
 private:
+    void _run_program_from_unsigned_long_array(unsigned long array[], const unsigned int& len, void** toFree = 0, unsigned short* toFreeCount = 0);
+    void _recorded_program_to_unsigned_long_array(unsigned long array[], const Value& prog, const int& progLength, const bool clone_ = false);
 #ifndef USE_ARDUINO_ARRAY
     std::unordered_map<Value, unsigned long*, HashFunction> functions;
+    std::vector<Value*> valuesToFree;
     std::array<Value, 255> stack;
     char top = 0;
 #define stackTOP stack[top - 1]
@@ -39,9 +42,10 @@ private:
 #define _POP_ stack._pop();
 #endif
     Value mem = Types::Map;
-    char rec = 0;
+    unsigned char rec = 0;
     Value params = Types::Array; // holds function parameters
-    char flowControlFalgs = 0;
+    char flowControlFlags = 0;
+    unsigned short skip = 0;
 public:
     VM();
     bool run1(int opcode, const Value& data = Types::Null); // returns true if the data is used

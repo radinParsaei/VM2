@@ -8,6 +8,54 @@ VM::VM() {
   BigNumber::begin(10);
 #endif
 #endif
+#ifndef USE_ARDUINO_ARRAY
+    valuesToFree.reserve(1000);
+#endif
+}
+
+void VM::_recorded_program_to_unsigned_long_array(unsigned long array[], const Value& prog, const int& progLength, const bool clone_) {
+    bool isData = false;
+    for (int i = 0; i < progLength; i++) {
+        const Value& item = prog[i];
+        if (!isData) {
+            array[i] = (int) item;
+            if (NEEDS_PARAMETER(array[i])) {
+                isData = true;
+            }
+        } else {
+#ifndef USE_ARDUINO_ARRAY
+            if (clone_) {
+                array[i] = (unsigned long) new Value(item);
+                valuesToFree.push_back((Value*) array[i]);
+            } else
+#endif
+            array[i] = (unsigned long) &item;
+            isData = false;
+        }
+    }
+}
+
+void VM::_run_program_from_unsigned_long_array(unsigned long array[], const unsigned int& len, void** toFree, unsigned short* toFreeCount) {
+    for (int i = 0; i < len; i++) {
+        if (NEEDS_PARAMETER(array[i])) {
+            run1(array[i], *(Value*) array[i + 1]);
+            i++;
+        } else {
+            run1(array[i]);
+            if (array[i] == OPCODE_END && !rec) {
+                Value& prog = stackTOP;
+                array[i] = (unsigned long) new Value(prog);
+                if (toFree) toFree[(*toFreeCount)++] = (void*) array[i];
+                if (NEEDS_PARAMETER(array[i - 2])) delete (Value*) array[i - 1];
+                array[i - 1] = OPCODE_PUT;
+                int l = prog.length();
+                for (int j = 0; j < l; j++) {
+                    array[i - j - 2] = 0;
+                }
+            }
+        }
+        if (flowControlFlags) break;
+    }
 }
 
 void VM::run(const Value& program) {
@@ -20,7 +68,7 @@ void VM::run(const Value& program) {
             } else {
                 run1((int) program[i]);
             }
-            if (flowControlFalgs) { // if any of flags is set, break (continue, break, return)
+            if (flowControlFlags) { // if any of flags is set, break (continue, break, return)
                 break;
             }
         }
@@ -28,6 +76,9 @@ void VM::run(const Value& program) {
 }
 
 bool VM::run1(int opcode, const Value& data) {
+    if (skip && skip--) {
+        return NEEDS_PARAMETER(opcode);
+    }
     if (rec > 0) {
         if (opcode != OPCODE_END || (rec - 1)) stackTOP.append(opcode, false);
         if (opcode == OPCODE_END) {
@@ -241,13 +292,39 @@ bool VM::run1(int opcode, const Value& data) {
         }
         break;
     }
-    case OPCODE_IF: {
-        if (pop()) {
-            const Value& v = pop();
-            run(v);
-        } else {
-            pop();
+    case OPCODE_SKIPIFN: {
+        const Value& v = pop();
+        if (!v) skip = (unsigned short) ((int) data);
+        return true;
+    }
+    case OPCODE_SKIP: {
+        skip = (unsigned short) ((int) data);
+        return true;
+    }
+    case OPCODE_WHILET: {
+        const Value& prog = pop();
+        int progLength = prog.length();
+        unsigned long progOpcodes[progLength];
+        _recorded_program_to_unsigned_long_array(progOpcodes, prog, progLength);
+        void** toFree = new void*[progLength / 2];
+        unsigned short toFreeCount = 0;
+        while (true) {
+            _run_program_from_unsigned_long_array(progOpcodes, progLength, toFree, &toFreeCount);
+            if (flowControlFlags & FLOW_CONTROL_CONTINUE) {
+                flowControlFlags &= ~FLOW_CONTROL_CONTINUE;
+            }
+            if (flowControlFlags & FLOW_CONTROL_BREAK) {
+                flowControlFlags &= ~FLOW_CONTROL_BREAK;
+                goto exit;
+            }
+            if (flowControlFlags) goto exit;
         }
+        exit:
+        while (toFreeCount) {
+            toFreeCount--;
+            delete (Value*) toFree[toFreeCount];
+        }
+        delete[] toFree;
         break;
     }
     case OPCODE_WHILE: {
@@ -257,69 +334,40 @@ bool VM::run1(int opcode, const Value& data) {
         int progLength = prog.length();
         unsigned long condOpcodes[condLength];
         unsigned long progOpcodes[progLength];
-        bool isData = false;
-        for (int i = 0; i < condLength; i++) {
-            const Value& item = cond[i];
-            if (!isData) {
-                condOpcodes[i] = (int) item;
-                if (NEEDS_PARAMETER(condOpcodes[i])) {
-                    isData = true;
-                }
-            } else {
-                condOpcodes[i] = (unsigned long) &item;
-                isData = false;
-            }
-        }
-        for (int i = 0; i < progLength; i++) {
-            const Value& item = prog[i];
-            if (!isData) {
-                progOpcodes[i] = (int) item;
-                if (NEEDS_PARAMETER(progOpcodes[i])) {
-                    isData = true;
-                }
-            } else {
-                progOpcodes[i] = (unsigned long) &item;
-                isData = false;
-            }
-        }
+        _recorded_program_to_unsigned_long_array(condOpcodes, cond, condLength);
+        _recorded_program_to_unsigned_long_array(progOpcodes, prog, progLength);
 
-        for (int i = 0; i < condLength; i++) {
-            if (NEEDS_PARAMETER(condOpcodes[i])) {
-                run1(condOpcodes[i], *(Value*) condOpcodes[i + 1]);
-                i++;
-            } else {
-                run1(condOpcodes[i]);
-            }
-        }
+        unsigned short freeCountCond = 0, freeCountProg = 0;
+
+        void** toFreeCond = new void*[progLength / 2];
+
+        _run_program_from_unsigned_long_array(condOpcodes, condLength, toFreeCond, &freeCountCond);
+
+        void** toFree = new void*[progLength / 2];
 
         while (pop()) {
-            for (int i = 0; i < progLength; i++) {
-                if (NEEDS_PARAMETER(progOpcodes[i])) {
-                    run1(progOpcodes[i], *(Value*) progOpcodes[i + 1]);
-                    i++;
-                } else {
-                    run1(progOpcodes[i]);
-                }
-                if (flowControlFalgs & FLOW_CONTROL_CONTINUE) {
-                    flowControlFalgs &= ~FLOW_CONTROL_CONTINUE;
-                    goto continue_;
-                }
-                if (flowControlFalgs & FLOW_CONTROL_BREAK) {
-                    flowControlFalgs &= ~FLOW_CONTROL_BREAK;
-                    return false;
-                }
-                if (flowControlFalgs) return false;
+            _run_program_from_unsigned_long_array(progOpcodes, progLength, toFree, &freeCountProg);
+            if (flowControlFlags & FLOW_CONTROL_CONTINUE) {
+                flowControlFlags &= ~FLOW_CONTROL_CONTINUE;
             }
-            continue_:
-            for (int i = 0; i < condLength; i++) {
-                if (NEEDS_PARAMETER(condOpcodes[i])) {
-                    run1(condOpcodes[i], *(Value*) condOpcodes[i + 1]);
-                    i++;
-                } else {
-                    run1(condOpcodes[i]);
-                }
+            if (flowControlFlags & FLOW_CONTROL_BREAK) {
+                flowControlFlags &= ~FLOW_CONTROL_BREAK;
+                goto _exit;
             }
+            if (flowControlFlags) goto _exit;
+            _run_program_from_unsigned_long_array(condOpcodes, condLength);
         }
+        _exit:
+        while (freeCountCond) {
+            freeCountCond--;
+            delete (Value*) toFreeCond[freeCountCond];
+        }
+        while (freeCountProg) {
+            freeCountProg--;
+            delete (Value*) toFree[freeCountProg];
+        }
+        delete[] toFree;
+        delete[] toFreeCond;
         break;
     }
     case OPCODE_MKFUNC: {
@@ -328,21 +376,9 @@ bool VM::run1(int opcode, const Value& data) {
 #ifndef USE_ARDUINO_ARRAY
         size_t length = body.length();
         unsigned long* opcodes = new unsigned long[length + 2];
-        opcodes[length + 1] = 0;
         opcodes[0] = (int) paramCount;
-        bool isData = false;
-        for (int i = 1; i < (length + 1); i++) {
-            const Value& item = body[i - 1];
-            if (!isData) {
-                opcodes[i] = (int) item;
-                if (NEEDS_PARAMETER(opcodes[i])) {
-                    isData = true;
-                }
-            } else {
-                opcodes[i] = (unsigned long) new Value(item.getData(), item.getType(), item.useCount);
-                isData = false;
-            }
-        }
+        opcodes[1] = length;
+        _recorded_program_to_unsigned_long_array(opcodes + 2, body, length, true);
         functions[data] = opcodes;
 #else
         body.append(paramCount, false);
@@ -357,21 +393,18 @@ bool VM::run1(int opcode, const Value& data) {
         for (short i = 0; i < l; i++) {
             params.append(pop(), false);
         }
-        size_t i = 1;
-        while (true) {
-            if (prog[i] == 0) break;
-            if (NEEDS_PARAMETER(prog[i])) {
-                run1(prog[i], *(Value*) prog[i + 1]);
-                i++;
-            } else {
-                run1(prog[i]);
-            }
-            if (flowControlFalgs & FLOW_CONTROL_RETURN) {
-                flowControlFalgs &= ~FLOW_CONTROL_RETURN;
-                return true;
-            }
-            i++;
+        unsigned long length = prog[1];
+        void** toFree = new void*[length / 2];
+        unsigned short toFreeCount = 0;
+        _run_program_from_unsigned_long_array(prog + 2, length, toFree, &toFreeCount);
+        if (flowControlFlags & FLOW_CONTROL_RETURN) {
+            flowControlFlags &= ~FLOW_CONTROL_RETURN;
         }
+        while (toFreeCount) {
+            toFreeCount--;
+            valuesToFree.push_back((Value*) toFree[toFreeCount]);
+        }
+        delete[] toFree;
 #else
         const Value& prog = functions[data];
         short l = (int) prog.pop();
@@ -388,13 +421,13 @@ bool VM::run1(int opcode, const Value& data) {
         return true;
     }
     case OPCODE_RETURN:
-        flowControlFalgs |= FLOW_CONTROL_RETURN;
+        flowControlFlags |= FLOW_CONTROL_RETURN;
         break;
     case OPCODE_CONTINUE:
-        flowControlFalgs |= FLOW_CONTROL_CONTINUE;
+        flowControlFlags |= FLOW_CONTROL_CONTINUE;
         break;
     case OPCODE_BREAK:
-        flowControlFalgs |= FLOW_CONTROL_BREAK;
+        flowControlFlags |= FLOW_CONTROL_BREAK;
         break;
     }
     return false;
@@ -402,20 +435,10 @@ bool VM::run1(int opcode, const Value& data) {
 
 VM::~VM() {
 #ifndef USE_ARDUINO_ARRAY
-    bool data = false;
+    for (Value* v : valuesToFree) {
+        delete v;
+    }
     for (auto& i : functions) {
-        int x = 1;
-        while (true) {
-            if (data) {
-                data = false;
-                delete ((Value*) i.second[x]);
-            }
-            if (i.second[x] == 0) break;
-            if (NEEDS_PARAMETER(i.second[x])) {
-                data = true;
-            }
-            x++;
-        }
         delete[] i.second;
     }
 #endif

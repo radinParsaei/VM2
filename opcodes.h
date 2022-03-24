@@ -13,7 +13,9 @@
 #define OPCODE_GETVAR           9
 #define OPCODE_REC              10
 #define OPCODE_END              11
-#define OPCODE_IF               12
+// #define OPCODE_IF            12
+// #define OPCODE_SKIPIF        12 // not usefull
+#define OPCODE_SKIPIFN          12 // skip if top of stack is not true (useful to skip else condition)
 #define OPCODE_WHILE            13
 #define OPCODE_NEQ              14 // not equal (!=)
 #define OPCODE_EQ               15 // equal (==)
@@ -44,5 +46,7 @@
 #define OPCODE_CONTINUE         41 // continue loop
 #define OPCODE_BREAK            42 // break loop
 #define OPCODE_RETURN           43 // break function (return)
+#define OPCODE_WHILET           44 // while true
+#define OPCODE_SKIP             45 // skip next instructions
 
 #endif // OPCODES_H

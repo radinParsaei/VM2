@@ -18,6 +18,8 @@ Value disassemble(int prog, Value val) {
     case OPCODE_MKFUNC:       return TEXT(IS_NUM(val)? "MKFUNC\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "MKFUNC\tBOOL" : (val.getType() == Types::Text? "MKFUNC\tTXT" : "MKFUNC\t")) + val.toString();
     case OPCODE_CALLFUNC:     return TEXT(IS_NUM(val)? "CALLFUNC\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "CALLFUNC\tBOOL" : (val.getType() == Types::Text? "CALLFUNC\tTXT" : "CALLFUNC\t")) + val.toString();
     case OPCODE_GETPARAM:     return TEXT(IS_NUM(val)? "GETPARAM\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "GETPARAM\tBOOL" : (val.getType() == Types::Text? "GETPARAM\tTXT" : "GETPARAM\t")) + val.toString();
+    // case OPCODE_SKIPIF:       return TEXT(IS_NUM(val)? "SKIPIF\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "SKIPIF\tBOOL" : (val.getType() == Types::Text? "SKIPIF\tTXT" : "SKIPIF\t")) + val.toString();
+    case OPCODE_SKIPIFN:      return TEXT(IS_NUM(val)? "SKIPIFN\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "SKIPIFN\tBOOL" : (val.getType() == Types::Text? "SKIPIFN\tTXT" : "SKIPIFN\t")) + val.toString();
     case OPCODE_ADD:          return "ADD";
     case OPCODE_SUB:          return "SUB";
     case OPCODE_MUL:          return "MUL";
@@ -26,7 +28,7 @@ Value disassemble(int prog, Value val) {
     case OPCODE_POW:          return "POW";
     case OPCODE_REC:          return "REC";
     case OPCODE_END:          return "END";
-    case OPCODE_IF:           return "IF";
+    // case OPCODE_IF:           return "IF";
     case OPCODE_WHILE:        return "WHILE";
     case OPCODE_PRINT:        return "PRINT";
     case OPCODE_GT:           return "GT";
@@ -52,6 +54,8 @@ Value disassemble(int prog, Value val) {
     case OPCODE_BREAK:        return "BREAK";
     case OPCODE_CONTINUE:     return "CONTINUE";
     case OPCODE_RETURN:       return "RETURN";
+    case OPCODE_WHILET:       return "WHILET";
+    case OPCODE_SKIP:         return "SKIP";
     default:                  return "???";
     return 0;
   }
@@ -77,8 +81,8 @@ int main(int argc, char const *argv[]) {
   Value vals = parseString(*st);
   for(int c = 0; c < vals.length(); c++) {
     if (vals[c].getType() == Types::Number) {
-      cout << disassemble((int) vals[c], (vals.length() - 1 == c)? Types::Null:vals[c + 1]).toString() << endl;
-      if (vals[c].getNumber() == OPCODE_PUT) c++;
+      cout << disassemble((int) vals[c], (vals.length() < c)? Types::Null:vals[c + 1]).toString() << endl;
+      if (NEEDS_PARAMETER((int) vals[c])) c++;
     }
   }
   f.close();
