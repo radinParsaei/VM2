@@ -279,6 +279,46 @@ bool VM::run1(int opcode, const Value& data) {
         mem.get(data) += pop();
         return true;
     }
+    case OPCODE_DECREASE: {
+        mem.get(data) -= pop();
+        return true;
+    }
+    case OPCODE_INPLACE_MUL: {
+        mem.get(data) *= pop();
+        return true;
+    }
+    case OPCODE_INPLACE_DIV: {
+        mem.get(data) /= pop();
+        return true;
+    }
+    case OPCODE_INPLACE_MOD: {
+        mem.get(data) %= pop();
+        return true;
+    }
+    case OPCODE_INPLACE_POW: {
+        mem.get(data).pow(pop());
+        return true;
+    }
+    case OPCODE_INPLACE_AND: {
+        mem.get(data) &= pop();
+        return true;
+    }
+    case OPCODE_INPLACE_OR: {
+        mem.get(data) |= pop();
+        return true;
+    }
+    case OPCODE_INPLACE_LSHIFT: {
+        mem.get(data) <<= pop();
+        return true;
+    }
+    case OPCODE_INPLACE_RSHIFT: {
+        mem.get(data) >>= pop();
+        return true;
+    }
+    case OPCODE_INPLACE_XOR: {
+        mem.get(data) ^= pop();
+        return true;
+    }
     case OPCODE_CREATE_ARR: {
         Value arr(Types::Array);
         long l = data;

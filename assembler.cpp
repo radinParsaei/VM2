@@ -190,6 +190,46 @@ Value assemble(Value line) {
     prog.append(OPCODE_IS);
     line = line.substring(2);
     readValue(prog, line);
+  } else if (line.startsWith("DECREASE")) {
+    prog.append(OPCODE_DECREASE);
+    line = line.substring(8);
+    readValue(prog, line);
+  } else if (line.startsWith("INPLACE_MUL")) {
+    prog.append(OPCODE_INPLACE_MUL);
+    line = line.substring(11);
+    readValue(prog, line);
+  } else if (line.startsWith("INPLACE_DIV")) {
+    prog.append(OPCODE_INPLACE_DIV);
+    line = line.substring(11);
+    readValue(prog, line);
+  } else if (line.startsWith("INPLACE_MOD")) {
+    prog.append(OPCODE_INPLACE_MOD);
+    line = line.substring(11);
+    readValue(prog, line);
+  } else if (line.startsWith("INPLACE_POW")) {
+    prog.append(OPCODE_INPLACE_POW);
+    line = line.substring(11);
+    readValue(prog, line);
+  } else if (line.startsWith("INPLACE_AND")) {
+    prog.append(OPCODE_INPLACE_AND);
+    line = line.substring(11);
+    readValue(prog, line);
+  } else if (line.startsWith("INPLACE_OR")) {
+    prog.append(OPCODE_INPLACE_OR);
+    line = line.substring(10);
+    readValue(prog, line);
+  } else if (line.startsWith("INPLACE_LSHIFT")) {
+    prog.append(OPCODE_INPLACE_LSHIFT);
+    line = line.substring(14);
+    readValue(prog, line);
+  } else if (line.startsWith("INPLACE_RSHIFT")) {
+    prog.append(OPCODE_INPLACE_RSHIFT);
+    line = line.substring(14);
+    readValue(prog, line);
+  } else if (line.startsWith("INPLACE_XOR")) {
+    prog.append(OPCODE_INPLACE_XOR);
+    line = line.substring(11);
+    readValue(prog, line);
   }
   return prog;
 }

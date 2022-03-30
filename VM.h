@@ -33,7 +33,7 @@
 #define FLOW_CONTROL_BREAK          0b00000010
 #define FLOW_CONTROL_RETURN         0b00000100
 
-#define NEEDS_PARAMETER(opcode) opcode == OPCODE_PUT || opcode == OPCODE_GETVAR || opcode == OPCODE_SETVAR || opcode == OPCODE_CREATE_ARR || opcode == OPCODE_CREATE_MAP || opcode == OPCODE_INCREASE || opcode == OPCODE_MKFUNC || opcode == OPCODE_CALLFUNC || opcode == OPCODE_GETPARAM || opcode == OPCODE_SKIPIFN || opcode == OPCODE_SKIP || opcode == OPCODE_CREATE_CLASS || opcode == OPCODE_CREATE_INSTANCE || opcode == OPCODE_CALLFUNCFROMINS || opcode == OPCODE_CALLMETHOD || opcode == OPCODE_IS
+#define NEEDS_PARAMETER(opcode) opcode == OPCODE_PUT || opcode == OPCODE_GETVAR || opcode == OPCODE_SETVAR || opcode == OPCODE_CREATE_ARR || opcode == OPCODE_CREATE_MAP || opcode == OPCODE_INCREASE || opcode == OPCODE_MKFUNC || opcode == OPCODE_CALLFUNC || opcode == OPCODE_GETPARAM || opcode == OPCODE_SKIPIFN || opcode == OPCODE_SKIP || opcode == OPCODE_CREATE_CLASS || opcode == OPCODE_CREATE_INSTANCE || opcode == OPCODE_CALLFUNCFROMINS || opcode == OPCODE_CALLMETHOD || opcode == OPCODE_IS || opcode == OPCODE_DECREASE || opcode == OPCODE_INPLACE_MUL || opcode == OPCODE_INPLACE_DIV || opcode == OPCODE_INPLACE_MOD || opcode == OPCODE_INPLACE_POW || opcode == OPCODE_INPLACE_AND || opcode == OPCODE_INPLACE_OR || opcode == OPCODE_INPLACE_LSHIFT || opcode == OPCODE_INPLACE_RSHIFT || opcode == OPCODE_INPLACE_XOR
 
 class VM {
 private:
