@@ -102,6 +102,8 @@ Value assemble(Value line) {
     prog.append(OPCODE_GETPARAM);
     line = line.substring(8);
     readValue(prog, line);
+  } else if (line.startsWith("GETPTRTOLASTFUNC")) {
+    prog.append(OPCODE_GETPTRTOLASTFUNC);
   } else if (line.startsWith("GET")) {
     prog.append(OPCODE_GET);
   } else if (line.startsWith("GE")) {
@@ -152,9 +154,13 @@ Value assemble(Value line) {
     prog.append(OPCODE_MKFUNC);
     line = line.substring(6);
     readValue(prog, line);
-  } else if (line.startsWith("CALLFUNC")) {
-    prog.append(OPCODE_CALLFUNC);
-    line = line.substring(8);
+  } else if (line.startsWith("CALLFUNCFROMINS")) {
+    prog.append(OPCODE_CALLFUNCFROMINS);
+    line = line.substring(16);
+    readValue(prog, line);
+  } else if (line.startsWith("CALLMETHOD")) {
+    prog.append(OPCODE_CALLMETHOD);
+    line = line.substring(10);
     readValue(prog, line);
   } else if (line.startsWith("CALLFUNC")) {
     prog.append(OPCODE_CALLFUNC);
@@ -170,6 +176,20 @@ Value assemble(Value line) {
     prog.append(OPCODE_CONTINUE);
   } else if (line.startsWith("RET")) { // RETURN, RET
     prog.append(OPCODE_RETURN);
+  } else if (line.startsWith("CREATE_CLASS")) {
+    prog.append(OPCODE_CREATE_CLASS);
+    line = line.substring(12);
+    readValue(prog, line);
+  } else if (line.startsWith("CREATE_INSTANCE")) {
+    prog.append(OPCODE_CREATE_INSTANCE);
+    line = line.substring(15);
+    readValue(prog, line);
+  } else if (line.startsWith("THIS")) {
+    prog.append(OPCODE_THIS);
+  } else if (line.startsWith("IS")) {
+    prog.append(OPCODE_IS);
+    line = line.substring(2);
+    readValue(prog, line);
   }
   return prog;
 }

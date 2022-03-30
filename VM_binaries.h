@@ -84,7 +84,7 @@ namespace VM_BINARIES {
   Value parseString(VMBinStream& in) {
     Value program = Types::Array;
     char data = 0;
-    bool dataAvailable = (bool)(bool)in.get(data);
+    bool dataAvailable = in.get(data);
     bool tmp = false;
     while (dataAvailable) {
       program.append((int) data);
@@ -96,7 +96,7 @@ namespace VM_BINARIES {
         if (tmp) continue;
       }
       dataAvailable = (bool) in.get(data);
-      if (tmp && !dataAvailable) {
+      if (tmp && !dataAvailable && data == 0) {
         program._pop();
       }
       tmp = false;

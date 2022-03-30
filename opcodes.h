@@ -48,5 +48,13 @@
 #define OPCODE_RETURN           43 // break function (return)
 #define OPCODE_WHILET           44 // while true
 #define OPCODE_SKIP             45 // skip next instructions
+#define OPCODE_CREATE_CLASS     46 // create class
+#define OPCODE_CREATE_INSTANCE  47 // create instance
+#define OPCODE_CALLFUNCFROMINS  48 // call function from instance (call Test#toString())
+#define OPCODE_CALLMETHOD       49 // call method from instance (call toString from Test) *finds full function name (something like Test#toString) in runtime
+#define OPCODE_THIS             50 // get this/self instance
+#define OPCODE_GETPTRTOLASTFUNC 51 // get a pointer to the last defined function
+#define OPCODE_IS               52 // check the type of data (is data of type) 0 for Null, 1 for True, 2 for False, 3 for any kind of Boolean, 4 for Number, 5 for Text, 6 for Array, 7 for Map, 8 for any kind of instance and pass the name of class to see if the value is an instance of that class
+
 
 #endif // OPCODES_H

@@ -20,7 +20,12 @@ if (${CMAKE_SYSTEM_NAME} MATCHES Linux)
     add_compile_options(-fdata-sections -ffunction-sections)
 endif ()
 
-add_link_options(-O3)
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 if (USE_DOUBLE)
     add_executable(VM ${libsources} main.cpp VM.cpp)
