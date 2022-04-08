@@ -14,3 +14,4 @@ CMakeFiles
 *.bin
 .vscode
 out.bin
+static_call.cpp

@@ -35,6 +35,7 @@ Value disassemble(int prog, Value val) {
     case OPCODE_INPLACE_LSHIFT:   return TEXT(IS_NUM(val)? "INPLACE_LSHIFT\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "INPLACE_LSHIFT\tBOOL" : (val.getType() == Types::Text? "INPLACE_LSHIFT\tTXT" : "INPLACE_LSHIFT\t")) + val.toString();
     case OPCODE_INPLACE_RSHIFT:   return TEXT(IS_NUM(val)? "INPLACE_RSHIFT\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "INPLACE_RSHIFT\tBOOL" : (val.getType() == Types::Text? "INPLACE_RSHIFT\tTXT" : "INPLACE_RSHIFT\t")) + val.toString();
     case OPCODE_INPLACE_XOR:      return TEXT(IS_NUM(val)? "INPLACE_XOR\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "INPLACE_XOR\tBOOL" : (val.getType() == Types::Text? "INPLACE_XOR\tTXT" : "INPLACE_XOR\t")) + val.toString();
+    case OPCODE_DLCALL:           return TEXT(IS_NUM(val)? "DLCALL\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "DLCALL\tBOOL" : (val.getType() == Types::Text? "DLCALL\tTXT" : "DLCALL\t")) + val.toString();
     case OPCODE_ADD:              return "ADD";
     case OPCODE_SUB:              return "SUB";
     case OPCODE_MUL:              return "MUL";

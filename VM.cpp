@@ -13,6 +13,8 @@ VM::VM() {
 #endif
 }
 
+bool bundledLibCall(const Value& fileName, const Value& funcName, Value* args, int argc, Value*& res);
+
 void VM::_recorded_program_to_unsigned_long_array(unsigned long array[], const Value& prog, const int& progLength, const bool clone_) {
     bool isData = false;
     for (int i = 0; i < progLength; i++) {
@@ -616,6 +618,44 @@ bool VM::run1(int opcode, const Value& data) {
         }
         break;
     }
+    case OPCODE_DLCALL: {
+        const Value& functionName = pop();
+        const Value& fileName = pop();
+        int argc = data;
+        Value* v = new Value[argc];
+        for (int i = 0; i < argc; i++) {
+            v[i] = &stack[_STACK_LEN_ - i];
+        }
+        Value* res;
+#if !__has_include("Arduino.h")
+        if (!bundledLibCall(fileName, functionName, v, argc, res)) { // file name has to start with : to point to a statically linked library
+            dlfunc fn;
+            void*& lib = libs[fileName.toString()];
+            if (lib == 0) {
+                lib = dlopen(fileName.toString().c_str(), RTLD_LAZY);
+            }
+            if (!lib) {
+                std::cerr << "opening library \"" << fileName.toString() << "\" failed\n";
+                std::cerr << dlerror();
+                break;
+            }
+            dlerror(); //clear errors
+            fn = ((dlfunc) dlsym(lib, functionName.toString().c_str()));
+            res = fn(v, argc);
+        }
+#else
+        bundledLibCall(fileName, functionName, v, argc, res);
+#endif
+        if (res != 0) {
+            append(Value(res->getData(), res->getType(), res->useCount), false);
+            delete res;
+        }
+        for (int i = 0; i < argc; i++) {
+            _POP_
+        }
+        delete[] v;
+        return true;
+    }
     }
     return false;
 }
@@ -627,6 +667,11 @@ VM::~VM() {
     }
     for (auto& i : functions) {
         delete[] i.second;
+    }
+#endif
+#if !__has_include("Arduino.h")
+    for (auto& v : libs) {
+        dlclose(v.second);
     }
 #endif
 }

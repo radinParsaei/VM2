@@ -65,6 +65,7 @@
 #define OPCODE_INPLACE_LSHIFT   60 // left shift variable in place
 #define OPCODE_INPLACE_RSHIFT   61 // left shift variable in place
 #define OPCODE_INPLACE_XOR      62 // xor variable in place
+#define OPCODE_DLCALL           63 // call a function from a dynamic library
 
 
 #endif // OPCODES_H

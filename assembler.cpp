@@ -230,6 +230,10 @@ Value assemble(Value line) {
     prog.append(OPCODE_INPLACE_XOR);
     line = line.substring(11);
     readValue(prog, line);
+  } else if (line.startsWith("DLCALL")) {
+    prog.append(OPCODE_DLCALL);
+    line = line.substring(6);
+    readValue(prog, line);
   }
   return prog;
 }
