@@ -46,7 +46,7 @@ Value disassemble(int prog, Value val) {
     case OPCODE_END:              return "END";
     // case OPCODE_IF:               return "IF";
     case OPCODE_WHILE:            return "WHILE";
-    case OPCODE_PRINT:            return "PRINT";
+    // case OPCODE_PRINT:            return "PRINT";
     case OPCODE_GT:               return "GT";
     case OPCODE_GE:               return "GE";
     case OPCODE_LT:               return "LT";

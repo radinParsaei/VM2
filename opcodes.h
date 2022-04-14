@@ -1,7 +1,7 @@
 #ifndef OPCODES_H
 #define OPCODES_H
 
-#define OPCODE_PRINT            100
+// #define OPCODE_PRINT            100
 #define OPCODE_PUT              1
 #define OPCODE_ADD              2
 #define OPCODE_SUB              3

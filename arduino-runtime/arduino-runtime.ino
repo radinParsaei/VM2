@@ -7,8 +7,8 @@ void setup() {
   Serial.begin(9600);
   while (!Serial);
   VMStringStream* st = new VMStringStream();
-  st->data = (const char[]) { OPCODE_PUT, 5, 'h', 'e', 'l', 'l', 'o', 0, OPCODE_PRINT };
-  st->len = 9;
+  st->data = (const char[]) { OPCODE_PUT, 5, 'h', 'e', 'l', 'l', 'o', 0, OPCODE_CALLFUNC, 0 };
+  st->len = 10;
   st->i = 0;
   VM vm;
   runBinFromStream(*st, vm);
@@ -41,16 +41,27 @@ void setup() {
   // vm.run1(OPCODE_PUT, "FUNCTION WORKS!!!\r\n");
   // vm.run1(OPCODE_CALLFUNC, "a");
 
-  vm.run1(OPCODE_PUT, "*test");
-  vm.run1(OPCODE_PUT, "test");
-  vm.run1(OPCODE_DLCALL, 0);
-  vm.run1(OPCODE_PRINT);
 
-  vm.run1(OPCODE_PUT, "*test");
-  vm.run1(OPCODE_PUT, "test");
+  // static_call_list.yml:
+  // test:
+  //   - _: 0
+  //   - test: 0
+
+  // lib test: 0
+  // test function from lib test: 0
+  vm.run1(OPCODE_PUT, 0);
+  vm.run1(OPCODE_PUT, 0);
   vm.run1(OPCODE_DLCALL, 0);
-  vm.run1(OPCODE_PRINT);
-}
+  vm.run1(OPCODE_CALLFUNC);
+
+  vm.run1(OPCODE_PUT, 0);
+  vm.run1(OPCODE_PUT, 0);
+  vm.run1(OPCODE_DLCALL, 0);
+  vm.run1(OPCODE_CALLFUNC);
+
+  vm.run1(OPCODE_CALLFUNC, Types::True);
+  vm.run1(OPCODE_CALLFUNC);
+  }
 
 void loop() {
 

@@ -99,58 +99,6 @@ bool VM::run1(int opcode, const Value& data) {
     case OPCODE_PUT: // append data to stack
         append(data, false);
         return true;
-    case OPCODE_PRINT: {
-        const Value& v = stackTOP;
-        if (v.getType() == Types::Instance) {
-            const Value& toStr = "#toString";
-            if (v.containsKey(toStr)) {
-                run1(OPCODE_CALLMETHOD, toStr);
-            } else {
-#ifndef USE_NOSTD_MAP
-                std::cout << "{\n";
-                std::unordered_map<Value, Value, HashFunction>::iterator it;
-                size_t size = std::distance((*v.getData().map).begin(), (*v.getData().map).end()) - 1;
-                bool sep = false;
-                for (it = (*v.getData().map).begin(); it != (*v.getData().map).end(); it++) {
-                    if (it->first.getType() != Types::Text && !(IS_NUM(it->first))) continue;
-                    std::cout << '\t' << it->first.toString() << " = " << it->second.toString();
-                    if (std::distance((*v.getData().map).begin(), it) != size) {
-                        std::cout << "\n";
-                        sep = true;
-                    } else {
-                        sep = false;
-                    }
-                }
-                if (!sep) std::cout << '\n';
-                std::cout << "}";
-#else
-                Serial.println("{");
-                bool sep = false;
-                for (int i = 0; i < v.getData().map->size(); i++) {
-                    if ((*v.getData().map)[i].key->getType() != Types::Text && (*v.getData().map)[i].key->getType() != Types::Number) continue;
-                    Serial.print("    ");
-                    Serial.println((*v.getData().map)[i].key->toString() + " = " + (*v.getData().map)[i].value->toString());
-                    if (i != v.getData().map->size() - 1) {
-                        Serial.println();
-                        sep = true;
-                    } else {
-                        sep = false;
-                    }
-                }
-                if (!sep) Serial.println();
-                Serial.print("}");
-#endif
-                _POP_
-                break;
-            }
-        }
-#if __has_include("Arduino.h")
-        Serial.print(pop().toString());
-#else
-        std::cout << pop().toString();
-#endif
-        break;
-    }
     case OPCODE_ADD: {
         const Value& x = pop();
         stackTOP += x;
@@ -473,6 +421,86 @@ bool VM::run1(int opcode, const Value& data) {
         return true;
     }
     case OPCODE_CALLFUNC: {
+        if (data.getType() == Types::Null || data.getType() == Types::False) { // null -> print, false -> println
+            const Value& v = stackTOP;
+            if (v.getType() == Types::Instance) {
+                const Value& toStr = "#toString";
+                if (v.containsKey(toStr)) {
+                    run1(OPCODE_CALLMETHOD, toStr);
+                } else {
+#ifndef USE_NOSTD_MAP
+                    std::cout << "{\n";
+                    std::unordered_map<Value, Value, HashFunction>::iterator it;
+                    size_t size = std::distance((*v.getData().map).begin(), (*v.getData().map).end()) - 1;
+                    bool sep = false;
+                    for (it = (*v.getData().map).begin(); it != (*v.getData().map).end(); it++) {
+                        if (it->first.getType() != Types::Text && !(IS_NUM(it->first))) continue;
+                        std::cout << '\t' << it->first.toString() << " = " << it->second.toString();
+                        if (std::distance((*v.getData().map).begin(), it) != size) {
+                            std::cout << "\n";
+                            sep = true;
+                        } else {
+                            sep = false;
+                        }
+                    }
+                    if (!sep) std::cout << '\n';
+                    std::cout << "}";
+                    if (data == Types::False) {
+                        std::cout << std::endl;
+                    }
+#else
+                    Serial.println("{");
+                    bool sep = false;
+                    for (int i = 0; i < v.getData().map->size(); i++) {
+                        if ((*v.getData().map)[i].key->getType() != Types::Text && (*v.getData().map)[i].key->getType() != Types::Number) continue;
+                        Serial.print("    ");
+                        Serial.println((*v.getData().map)[i].key->toString() + " = " + (*v.getData().map)[i].value->toString());
+                        if (i != v.getData().map->size() - 1) {
+                            Serial.println();
+                            sep = true;
+                        } else {
+                            sep = false;
+                        }
+                    }
+                    if (!sep) Serial.println();
+                    Serial.print("}");
+                    if (data == Types::False) {
+                        Serial.println();
+                    }
+#endif
+                    _POP_
+                    break;
+                }
+            }
+#if __has_include("Arduino.h")
+            Serial.print(pop().toString());
+            if (data == Types::False) {
+                Serial.println();
+            }
+#else
+            std::cout << pop().toString();
+            if (data == Types::False) {
+                std::cout << std::endl;
+            }
+#endif
+            break;
+        } else if (data.getType() == Types::True) {
+            TEXT a;
+#if !__has_include("Arduino.h")
+            std::getline(std::cin, a);
+#else
+            a = Serial.readString();
+#endif
+            append(a, false);
+            break;
+        } else if (data == Value(-1)) {
+#if !__has_include("Arduino.h")
+            std::cout << std::flush;
+#else
+            Serial.flush();
+#endif
+            break;
+        }
 #ifndef USE_ARDUINO_ARRAY
         unsigned long* prog;
         if (data.getType() == Types::FuncPtr) {

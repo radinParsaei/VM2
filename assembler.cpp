@@ -20,16 +20,22 @@ void readValue(Value& prog, Value& line) {
     line = line.substring(3);
     line.replace("\\n", "\n");
     line.replace("\\\n", "\\n");
+    line.replace("\\\\n", "\\\n");
     line.replace("\\t", "\t");
     line.replace("\\\t", "\\t");
+    line.replace("\\\\t", "\\\t");
     line.replace("\\r", "\r");
     line.replace("\\\r", "\\r");
+    line.replace("\\\\r", "\\\r");
     line.replace("\\a", "\a");
     line.replace("\\\a", "\\a");
+    line.replace("\\\\a", "\\\a");
     line.replace("\\b", "\b");
     line.replace("\\\b", "\\b");
+    line.replace("\\\\b", "\\\b");
     line.replace("\\f", "\f");
     line.replace("\\\f", "\\f");
+    line.replace("\\\\f", "\\\f");
     line.replace("\\\'", "\'");
     line.replace("\\\"", "\"");
     line.replace("\\\\", "\\");
@@ -72,8 +78,19 @@ Value assemble(Value line) {
     prog.append(OPCODE_GETVAR);
     line = line.substring(6);
     readValue(prog, line);
-  } else if (line.startsWith("PRINT")) {
-    prog.append(OPCODE_PRINT);
+  } else if (line.startsWith("#INPUT")) { // true -> input
+    prog.append(OPCODE_CALLFUNC);
+    prog.append(Types::True);
+  } else if (line.startsWith("#FLUSH")) { // -1 -> flush
+    prog.append(OPCODE_CALLFUNC);
+    prog.append(-1);
+  } else if (line.startsWith("#PRINTLN")) { // false -> println
+    prog.append(OPCODE_CALLFUNC);
+    prog.append(Types::False);
+  } else if (line.startsWith("#PRINT")) { // print opcode is removed (instead call Null function (CALLFUNC NULL))
+    // prog.append(OPCODE_PRINT);
+    prog.append(OPCODE_CALLFUNC);
+    prog.append(Types::Null);
   // } else if (line.startsWith("IF")) {
   //   prog.append(OPCODE_IF);
   } else if (line.startsWith("SKIPIFN")) {

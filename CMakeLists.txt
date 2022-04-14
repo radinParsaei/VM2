@@ -31,6 +31,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 add_custom_command (
     OUTPUT static_call.cpp
+    DEPENDS build_static_call_list.sh
     COMMAND bash -c "bash build_static_call_list.sh \"${BUNDLE_LIBRARIES}\">static_call.cpp"
 )
 
