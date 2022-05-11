@@ -30,7 +30,12 @@ namespace VM_BINARIES {
       program = (Types::True);
     } else if (data == 2) {
       program = (Types::False);
-    } else if ((data & 0b00000111) == 3 || (data & 0b00000111) == 4) { //small numbers
+    } else if ((data & 0b00000111) == 3 || (data & 0b00000111) == 4 || (data & 0b00000111) == 5 || (data & 0b00000111) == 6) { //small numbers
+      bool isSmallNumber = false; // the SmallNumber type
+      if ((data & 0b00000111) > 4) {
+        data -= 2;
+        isSmallNumber = true;
+      }
       bool isneg = (data & 0b00000111) - 3;
       Value n = (data & 0b11111000) >> 3;
       while (data != 0) {
@@ -39,7 +44,8 @@ namespace VM_BINARIES {
       }
       if (isneg) n = -n;
       program = n;
-    } else if (data == 5) {
+      if (isSmallNumber) program.setType(Types::SmallNumber);
+    } else if (data == 7) {
       TEXT s;
       while (true) {
         if (!in.get(data)) break;
@@ -51,14 +57,22 @@ namespace VM_BINARIES {
       }
       program = s;
       return true;
-    } else if (data == 6) {
+    } else if (data == 8 || data == 9 || data == 10) {
       TEXT s;
+      char t = data;
       while (data != 0) {
         if (!in.get(data)) break;
         s += data;
       }
-      program = s.c_str();
-      program.toNumber();
+      if (t == 8) {
+        program = s.c_str();
+        program.toNumber();
+      } else if (t == 9) {
+        program = NUMBER(s.c_str());
+      } else {
+        program = atof(s.c_str());
+        program.setType(Types::SmallNumber);
+      }
     }
     return false;
   }
@@ -117,9 +131,10 @@ namespace VM_BINARIES {
         res += (char) 2;
         break;
       case Types::Number:
+      case Types::SmallNumber:
       case Types::BigNumber: {
         NUMBER j = data.getNumber();
-        if (j < 1001 && j > -1001 && Value(data.toString()).indexOf(".") == -1) {
+        if (data.getType() != Types::BigNumber && j < 1001 && j > -1001 && Value(data.toString()).indexOf(".") == -1) {
           char mode;
           if (j >= 0) {
             mode = 3;
@@ -127,6 +142,7 @@ namespace VM_BINARIES {
             mode = 4;
             j = -j;
           }
+          if (data.getType() == Types::SmallNumber) mode += 2;
           if (j >= 31) {
             mode |= 31 << 3;
             j -= 31;
@@ -160,14 +176,14 @@ namespace VM_BINARIES {
           }
           res += (char) 0;
         } else {
-          res += (char) 6;
+          res += data.getType() == Types::Number? (char) 8 : (data.getType() == Types::BigNumber? (char) 9 : (char) 10);
           res += data.toString();
           res += (char) 0;
         }
         break;
       }
       case Types::Text:
-        res += (char) 5;
+        res += (char) 7;
         for (char j : data.toString()) {
           if (j == 0) res += j;
           res += j;

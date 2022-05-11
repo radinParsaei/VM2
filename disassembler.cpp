@@ -7,35 +7,49 @@
 using namespace std;
 using namespace VM_BINARIES;
 
+inline void addValue(TEXT& t, const Value& val) {
+  if (val.getType() == Types::Number) {
+        t += "NUM";
+      } else if (val.getType() == Types::SmallNumber) {
+        t += "SNUM";
+      } else if (val.getType() == Types::BigNumber) {
+        t += "BNUM";
+      } else if (val.getType() == Types::Text) {
+        t += "TXT";
+      } else if (val.getType() == Types::True || val.getType() == Types::False) {
+        t += "BOOL";
+      }
+      t += val.toString();
+}
+
 Value disassemble(int prog, Value val) {
   switch (prog) {
-    case OPCODE_PUT:              return TEXT(IS_NUM(val)? "PUT\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "PUT\tBOOL" : (val.getType() == Types::Text? "PUT\tTXT" : "PUT\t")) + val.toString();
-    case OPCODE_SETVAR:           return TEXT(IS_NUM(val)? "SETVAR\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "SETVAR\tBOOL" : (val.getType() == Types::Text? "SETVAR\tTXT" : "SETVAR\t")) + val.toString();
-    case OPCODE_GETVAR:           return TEXT(IS_NUM(val)? "GETVAR\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "GETVAR\tBOOL" : (val.getType() == Types::Text? "GETVAR\tTXT" : "GETVAR\t")) + val.toString();
-    case OPCODE_CREATE_ARR:       return TEXT(IS_NUM(val)? "CREATE_ARR\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "CREATE_ARR\tBOOL" : (val.getType() == Types::Text? "CREATE_ARR\tTXT" : "CREATE_ARR\t")) + val.toString();
-    case OPCODE_CREATE_MAP:       return TEXT(IS_NUM(val)? "CREATE_MAP\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "CREATE_MAP\tBOOL" : (val.getType() == Types::Text? "CREATE_MAP\tTXT" : "CREATE_MAP\t")) + val.toString();
-    case OPCODE_INCREASE:         return TEXT(IS_NUM(val)? "INCREASE\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "INCREASE\tBOOL" : (val.getType() == Types::Text? "INCREASE\tTXT" : "INCREASE\t")) + val.toString();
-    case OPCODE_MKFUNC:           return TEXT(IS_NUM(val)? "MKFUNC\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "MKFUNC\tBOOL" : (val.getType() == Types::Text? "MKFUNC\tTXT" : "MKFUNC\t")) + val.toString();
-    case OPCODE_CALLFUNC:         return TEXT(IS_NUM(val)? "CALLFUNC\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "CALLFUNC\tBOOL" : (val.getType() == Types::Text? "CALLFUNC\tTXT" : "CALLFUNC\t")) + val.toString();
-    case OPCODE_GETPARAM:         return TEXT(IS_NUM(val)? "GETPARAM\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "GETPARAM\tBOOL" : (val.getType() == Types::Text? "GETPARAM\tTXT" : "GETPARAM\t")) + val.toString();
-    // case OPCODE_SKIPIF:           return TEXT(IS_NUM(val)? "SKIPIF\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "SKIPIF\tBOOL" : (val.getType() == Types::Text? "SKIPIF\tTXT" : "SKIPIF\t")) + val.toString();
-    case OPCODE_SKIPIFN:          return TEXT(IS_NUM(val)? "SKIPIFN\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "SKIPIFN\tBOOL" : (val.getType() == Types::Text? "SKIPIFN\tTXT" : "SKIPIFN\t")) + val.toString();
-    case OPCODE_CREATE_CLASS:     return TEXT(IS_NUM(val)? "CREATE_CLASS\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "CREATE_CLASS\tBOOL" : (val.getType() == Types::Text? "CREATE_CLASS\tTXT" : "CREATE_CLASS\t")) + val.toString();
-    case OPCODE_CREATE_INSTANCE:  return TEXT(IS_NUM(val)? "CREATE_INSTANCE\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "CREATE_INSTANCE\tBOOL" : (val.getType() == Types::Text? "CREATE_INSTANCE\tTXT" : "CREATE_INSTANCE\t")) + val.toString();
-    case OPCODE_CALLFUNCFROMINS:  return TEXT(IS_NUM(val)? "CALLFUNCFROMINS\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "CALLFUNCFROMINS\tBOOL" : (val.getType() == Types::Text? "CALLFUNCFROMINS\tTXT" : "CALLFUNCFROMINS\t")) + val.toString();
-    case OPCODE_CALLMETHOD:       return TEXT(IS_NUM(val)? "CALLMETHOD\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "CALLMETHOD\tBOOL" : (val.getType() == Types::Text? "CALLMETHOD\tTXT" : "CALLMETHOD\t")) + val.toString();
-    case OPCODE_IS:               return TEXT(IS_NUM(val)? "IS\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "IS\tBOOL" : (val.getType() == Types::Text? "IS\tTXT" : "IS\t")) + val.toString();
-    case OPCODE_DECREASE:         return TEXT(IS_NUM(val)? "DECREASE\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "DECREASE\tBOOL" : (val.getType() == Types::Text? "DECREASE\tTXT" : "DECREASE\t")) + val.toString();
-    case OPCODE_INPLACE_MUL:      return TEXT(IS_NUM(val)? "INPLACE_MUL\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "INPLACE_MUL\tBOOL" : (val.getType() == Types::Text? "INPLACE_MUL\tTXT" : "INPLACE_MUL\t")) + val.toString();
-    case OPCODE_INPLACE_DIV:      return TEXT(IS_NUM(val)? "INPLACE_DIV\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "INPLACE_DIV\tBOOL" : (val.getType() == Types::Text? "INPLACE_DIV\tTXT" : "INPLACE_DIV\t")) + val.toString();
-    case OPCODE_INPLACE_MOD:      return TEXT(IS_NUM(val)? "INPLACE_MOD\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "INPLACE_MOD\tBOOL" : (val.getType() == Types::Text? "INPLACE_MOD\tTXT" : "INPLACE_MOD\t")) + val.toString();
-    case OPCODE_INPLACE_POW:      return TEXT(IS_NUM(val)? "INPLACE_POW\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "INPLACE_POW\tBOOL" : (val.getType() == Types::Text? "INPLACE_POW\tTXT" : "INPLACE_POW\t")) + val.toString();
-    case OPCODE_INPLACE_AND:      return TEXT(IS_NUM(val)? "INPLACE_AND\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "INPLACE_AND\tBOOL" : (val.getType() == Types::Text? "INPLACE_AND\tTXT" : "INPLACE_AND\t")) + val.toString();
-    case OPCODE_INPLACE_OR:       return TEXT(IS_NUM(val)? "INPLACE_OR\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "INPLACE_OR\tBOOL" : (val.getType() == Types::Text? "INPLACE_OR\tTXT" : "INPLACE_OR\t")) + val.toString();
-    case OPCODE_INPLACE_LSHIFT:   return TEXT(IS_NUM(val)? "INPLACE_LSHIFT\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "INPLACE_LSHIFT\tBOOL" : (val.getType() == Types::Text? "INPLACE_LSHIFT\tTXT" : "INPLACE_LSHIFT\t")) + val.toString();
-    case OPCODE_INPLACE_RSHIFT:   return TEXT(IS_NUM(val)? "INPLACE_RSHIFT\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "INPLACE_RSHIFT\tBOOL" : (val.getType() == Types::Text? "INPLACE_RSHIFT\tTXT" : "INPLACE_RSHIFT\t")) + val.toString();
-    case OPCODE_INPLACE_XOR:      return TEXT(IS_NUM(val)? "INPLACE_XOR\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "INPLACE_XOR\tBOOL" : (val.getType() == Types::Text? "INPLACE_XOR\tTXT" : "INPLACE_XOR\t")) + val.toString();
-    case OPCODE_DLCALL:           return TEXT(IS_NUM(val)? "DLCALL\tNUM" : (val.getType() == Types::True || val.getType() == Types::False)? "DLCALL\tBOOL" : (val.getType() == Types::Text? "DLCALL\tTXT" : "DLCALL\t")) + val.toString();
+    case OPCODE_PUT:              { TEXT t = "PUT\t"; addValue(t, val); return t; }
+    case OPCODE_SETVAR:           { TEXT t = "SETVAR\t"; addValue(t, val); return t; }
+    case OPCODE_GETVAR:           { TEXT t = "GETVAR\t"; addValue(t, val); return t; }
+    case OPCODE_CREATE_ARR:       { TEXT t = "CREATE_ARR\t"; addValue(t, val); return t; }
+    case OPCODE_CREATE_MAP:       { TEXT t = "CREATE_MAP\t"; addValue(t, val); return t; }
+    case OPCODE_INCREASE:         { TEXT t = "INCREASE\t"; addValue(t, val); return t; }
+    case OPCODE_MKFUNC:           { TEXT t = "MKFUNC\t"; addValue(t, val); return t; }
+    case OPCODE_CALLFUNC:         { TEXT t = "CALLFUNC\t"; addValue(t, val); return t; }
+    case OPCODE_GETPARAM:         { TEXT t = "GETPARAM\t"; addValue(t, val); return t; }
+    case OPCODE_SKIPIFN:          { TEXT t = "SKIPIFN\t"; addValue(t, val); return t; }
+    case OPCODE_CREATE_CLASS:     { TEXT t = "CREATE_CLASS\t"; addValue(t, val); return t; }
+    case OPCODE_CREATE_INSTANCE:  { TEXT t = "CREATE_INSTANCE\t"; addValue(t, val); return t; }
+    case OPCODE_CALLFUNCFROMINS:  { TEXT t = "CALLFUNCFROMINS\t"; addValue(t, val); return t; }
+    case OPCODE_CALLMETHOD:       { TEXT t = "CALLMETHOD\t"; addValue(t, val); return t; }
+    case OPCODE_IS:               { TEXT t = "IS\t"; addValue(t, val); return t; }
+    case OPCODE_DECREASE:         { TEXT t = "DECREASE\t"; addValue(t, val); return t; }
+    case OPCODE_INPLACE_MUL:      { TEXT t = "INPLACE_MUL\t"; addValue(t, val); return t; }
+    case OPCODE_INPLACE_DIV:      { TEXT t = "INPLACE_DIV\t"; addValue(t, val); return t; }
+    case OPCODE_INPLACE_MOD:      { TEXT t = "INPLACE_MOD\t"; addValue(t, val); return t; }
+    case OPCODE_INPLACE_POW:      { TEXT t = "INPLACE_POW\t"; addValue(t, val); return t; }
+    case OPCODE_INPLACE_AND:      { TEXT t = "INPLACE_AND\t"; addValue(t, val); return t; }
+    case OPCODE_INPLACE_OR:       { TEXT t = "INPLACE_OR\t"; addValue(t, val); return t; }
+    case OPCODE_INPLACE_LSHIFT:   { TEXT t = "INPLACE_LSHIFT\t"; addValue(t, val); return t; }
+    case OPCODE_INPLACE_RSHIFT:   { TEXT t = "INPLACE_RSHIFT\t"; addValue(t, val); return t; }
+    case OPCODE_INPLACE_XOR:      { TEXT t = "INPLACE_XOR\t"; addValue(t, val); return t; }
+    case OPCODE_DLCALL:           { TEXT t = "DLCALL\t"; addValue(t, val); return t; }
     case OPCODE_ADD:              return "ADD";
     case OPCODE_SUB:              return "SUB";
     case OPCODE_MUL:              return "MUL";
@@ -89,8 +103,12 @@ int main(int argc, char const *argv[]) {
     cerr << "can't open file" << '\n';
     return 1;
   }
-#ifdef USE_GMP_LIB
+#ifndef USE_DOUBLE
+#ifndef USE_BIG_NUMBER
   mpf_set_default_prec(1024);
+#else
+  BigNumber::begin(10);
+#endif
 #endif
   VMStringStream* st = new VMStringStream();
   string s = string((istreambuf_iterator<char>(f)), istreambuf_iterator<char>());

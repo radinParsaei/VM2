@@ -16,6 +16,21 @@ void readValue(Value& prog, Value& line) {
     line = line.trim();
     prog.append(line.toString());
     prog[prog.length() - 1].toNumber();
+  } else if (line.startsWith("BNUM")) {
+    line = line.substring(4);
+    int i = 0;
+    while (!(isdigit(line.charAt(i)) || line.charAt(i) == '.' || line.charAt(i) == '-')) i++;
+    line = line.substring(i);
+    line = line.trim();
+    prog.append(NUMBER(line.toString()));
+  } else if (line.startsWith("SNUM")) {
+    line = line.substring(4);
+    int i = 0;
+    while (!(isdigit(line.charAt(i)) || line.charAt(i) == '.' || line.charAt(i) == '-')) i++;
+    line = line.substring(i);
+    line = line.trim();
+    prog.append(atof(line.toString().c_str()));
+    prog[1].setType(Types::SmallNumber);
   } else if (line.startsWith("TXT")) {
     line = line.substring(3);
     line.replace("\\n", "\n");
@@ -256,16 +271,20 @@ Value assemble(Value line) {
 }
 
 int main(int argc, char const **argv) {
-  if(argc < 2){
+  if (argc < 2) {
     cerr << "please enter a file name to assemble\n";
     return 1;
   }
   string filename = "out.bin";
-  if(argc >= 3){
+  if (argc >= 3) {
     filename = argv[2];
   }
-#ifdef USE_GMP_LIB
+#ifndef USE_DOUBLE
+#ifndef USE_BIG_NUMBER
   mpf_set_default_prec(1024);
+#else
+  BigNumber::begin(10);
+#endif
 #endif
   ofstream ofile;
   ofile.open(filename);

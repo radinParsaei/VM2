@@ -2,6 +2,19 @@
 #define VM_H
 #include "opcodes.h"
 
+#if defined(ARDUINO_ARCH_SAM) || defined(ESP8266) || defined(ESP32)
+#define ARDUINO_HARDWARE
+#else
+#if __has_include("Arduino.h")
+#define ARDUINO_HARDWARE
+#endif
+#endif
+
+#ifdef ARDUINO_HARDWARE
+#undef min
+#undef max
+#endif
+
 #ifdef __AVR__
 #define USE_DOUBLE
 // #define USE_BIG_NUMBER
@@ -9,10 +22,12 @@
 #define USE_ARDUINO_ARRAY
 #define USE_NOSTD_MAP
 #define MAX_FIXED_ARRAY_SIZE 10
+#elif defined(ARDUINO_HARDWARE)
+#define USE_BIG_NUMBER
 #else
 #define VECTOR_RESERVED_SIZE 1000
 #endif
-#if !__has_include("Arduino.h")
+#ifndef ARDUINO_HARDWARE
 #include <iostream>
 #include <array>
 #include <map>
@@ -29,7 +44,7 @@
 
 #include "value.h"
 
-#if !__has_include("Arduino.h")
+#if !__has_include("Arduino.h") && !defined(ARDUINO_HARDWARE)
 #include <dlfcn.h>
 #else
 #define STATIC_BUILD // let libraries know that they are bundling with the VM
@@ -54,7 +69,7 @@ private:
 #endif
     void _run_program_from_unsigned_long_array(unsigned long array[], const unsigned int& len, void** toFree = 0, unsigned short* toFreeCount = 0);
     void _recorded_program_to_unsigned_long_array(unsigned long array[], const Value& prog, const int& progLength, const bool clone_ = false);
-#ifndef USE_ARDUINO_ARRAY
+#if !defined(USE_ARDUINO_ARRAY) && !defined(ESP32) && !defined(ESP8266) && !defined(MICROBIT) && !defined(ARDUINO_ARCH_SAM)
     std::unordered_map<Value, unsigned long*, HashFunction> functions;
     unsigned long* lastFunc; // used in OPCODE_GETPTRTOLASTFUNC (useful while creating classes)
     std::vector<Value*> valuesToFree;
@@ -83,7 +98,7 @@ public:
     void run(const Value& program);
     ~VM();
     inline void append(const Value& data, bool clone) {
-#ifndef USE_ARDUINO_ARRAY
+#if !defined(USE_ARDUINO_ARRAY) && !defined(ESP32) && !defined(ESP8266) && !defined(MICROBIT) && !defined(ARDUINO_ARCH_SAM)
         stack[top] = data;
         stack[top++].copyBeforeModification = clone;
 #else
@@ -92,7 +107,7 @@ public:
     }
 
     inline Value pop() {
-#ifndef USE_ARDUINO_ARRAY
+#if !defined(USE_ARDUINO_ARRAY) && !defined(ESP32) && !defined(ESP8266) && !defined(MICROBIT) && !defined(ARDUINO_ARCH_SAM)
         return stack[--top];
 #else
         return stack.pop();

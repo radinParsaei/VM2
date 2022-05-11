@@ -1,5 +1,9 @@
 #include "VM.h"
 
+#ifdef ARDUINO_HARDWARE
+#include <Arduino.h>
+#endif
+
 VM::VM() {
 #ifndef USE_DOUBLE
 #ifndef USE_BIG_NUMBER
@@ -8,7 +12,7 @@ VM::VM() {
   BigNumber::begin(10);
 #endif
 #endif
-#ifndef USE_ARDUINO_ARRAY
+#if !defined(USE_ARDUINO_ARRAY) && !defined(ESP32) && !defined(ESP8266) && !defined(MICROBIT) && !defined(ARDUINO_ARCH_SAM)
     valuesToFree.reserve(1000);
 #endif
 }
@@ -25,7 +29,7 @@ void VM::_recorded_program_to_unsigned_long_array(unsigned long array[], const V
                 isData = true;
             }
         } else {
-#ifndef USE_ARDUINO_ARRAY
+#if !defined(USE_ARDUINO_ARRAY) && !defined(ESP32) && !defined(ESP8266) && !defined(MICROBIT) && !defined(ARDUINO_ARCH_SAM)
             if (clone_) {
                 array[i] = (unsigned long) new Value(item);
                 valuesToFree.push_back((Value*) array[i]);
@@ -405,8 +409,8 @@ bool VM::run1(int opcode, const Value& data) {
     }
     case OPCODE_MKFUNC: {
         const Value& paramCount = pop();
-        const Value& body = pop();
-#ifndef USE_ARDUINO_ARRAY
+        Value body = pop();
+#if !defined(USE_ARDUINO_ARRAY) && !defined(ESP32) && !defined(ESP8266) && !defined(MICROBIT) && !defined(ARDUINO_ARCH_SAM)
         size_t length = body.length();
         unsigned long* opcodes = new unsigned long[length + 2];
         opcodes[0] = (int) paramCount;
@@ -429,6 +433,30 @@ bool VM::run1(int opcode, const Value& data) {
                     run1(OPCODE_CALLMETHOD, toStr);
                 } else {
 #ifndef USE_NOSTD_MAP
+#ifdef ARDUINO_HARDWARE
+                    Serial.println("{\n");
+                    std::unordered_map<Value, Value, HashFunction>::iterator it;
+                    size_t size = std::distance((*v.getData().map).begin(), (*v.getData().map).end()) - 1;
+                    bool sep = false;
+                    for (it = (*v.getData().map).begin(); it != (*v.getData().map).end(); it++) {
+                        if (it->first.getType() != Types::Text && !(IS_NUM(it->first))) continue;
+                        Serial.print('\t');
+                        Serial.print(it->first.toString().c_str());
+                        Serial.print(" = ");
+                        Serial.print(it->second.toString().c_str());
+                        if (std::distance((*v.getData().map).begin(), it) != size) {
+                            Serial.println();
+                            sep = true;
+                        } else {
+                            sep = false;
+                        }
+                    }
+                    if (!sep) Serial.println();
+                    Serial.print("}");
+                    if (data == Types::False) {
+                        Serial.println();
+                    }
+#else
                     std::cout << "{\n";
                     std::unordered_map<Value, Value, HashFunction>::iterator it;
                     size_t size = std::distance((*v.getData().map).begin(), (*v.getData().map).end()) - 1;
@@ -448,13 +476,14 @@ bool VM::run1(int opcode, const Value& data) {
                     if (data == Types::False) {
                         std::cout << std::endl;
                     }
+#endif
 #else
                     Serial.println("{");
                     bool sep = false;
                     for (int i = 0; i < v.getData().map->size(); i++) {
                         if ((*v.getData().map)[i].key->getType() != Types::Text && (*v.getData().map)[i].key->getType() != Types::Number) continue;
                         Serial.print("    ");
-                        Serial.println((*v.getData().map)[i].key->toString() + " = " + (*v.getData().map)[i].value->toString());
+                        Serial.println((*v.getData().map)[i].key->toString() + " = " + (*v.getData().map)[i].value->toString().c_str());
                         if (i != v.getData().map->size() - 1) {
                             Serial.println();
                             sep = true;
@@ -472,8 +501,8 @@ bool VM::run1(int opcode, const Value& data) {
                     break;
                 }
             }
-#if __has_include("Arduino.h")
-            Serial.print(pop().toString());
+#ifdef ARDUINO_HARDWARE
+            Serial.print(pop().toString().c_str());
             if (data == Types::False) {
                 Serial.println();
             }
@@ -484,24 +513,24 @@ bool VM::run1(int opcode, const Value& data) {
             }
 #endif
             break;
-        } else if (data.getType() == Types::True) {
+        } else if (data.getType() == Types::True) { // -> input
             TEXT a;
-#if !__has_include("Arduino.h")
+#ifndef ARDUINO_HARDWARE
             std::getline(std::cin, a);
 #else
-            a = Serial.readString();
+            a = Serial.readString().c_str();
 #endif
             append(a, false);
             break;
-        } else if (data == Value(-1)) {
-#if !__has_include("Arduino.h")
+        } else if (data == Value(-1)) { // -> flush
+#ifndef ARDUINO_HARDWARE
             std::cout << std::flush;
 #else
             Serial.flush();
 #endif
             break;
         }
-#ifndef USE_ARDUINO_ARRAY
+#if !defined(USE_ARDUINO_ARRAY) && !defined(ESP32) && !defined(ESP8266) && !defined(MICROBIT) && !defined(ARDUINO_ARCH_SAM)
         unsigned long* prog;
         if (data.getType() == Types::FuncPtr) {
             prog = (unsigned long*) (unsigned long) (double) data;
@@ -525,7 +554,7 @@ bool VM::run1(int opcode, const Value& data) {
         }
         delete[] toFree;
 #else
-        const Value prog;
+        Value prog;
         if (data.getType() == Types::FuncPtr) {
             prog = data;
         } else {
@@ -602,7 +631,7 @@ bool VM::run1(int opcode, const Value& data) {
         break;
     }
     case OPCODE_GETPTRTOLASTFUNC: {
-#ifdef USE_ARDUINO_ARRAY
+#if defined(USE_ARDUINO_ARRAY) || defined(ESP32) || defined(ESP8266) || defined(MICROBIT) || defined(ARDUINO_ARCH_SAM)
         Value v = functions.getValueAt(functions.length() - 1);
         v.setType(Types::FuncPtr);
         append(v, true);
@@ -655,7 +684,7 @@ bool VM::run1(int opcode, const Value& data) {
             v[i] = &stack[_STACK_LEN_ - i];
         }
         Value* res;
-#if !__has_include("Arduino.h")
+#ifndef ARDUINO_HARDWARE
         if (!bundledLibCall(fileName, functionName, v, argc, res)) { // file name has to start with : to point to a statically linked library
             dlfunc fn;
             void*& lib = libs[fileName.toString()];
@@ -689,7 +718,7 @@ bool VM::run1(int opcode, const Value& data) {
 }
 
 VM::~VM() {
-#ifndef USE_ARDUINO_ARRAY
+#if !defined(USE_ARDUINO_ARRAY) && !defined(ESP32) && !defined(ESP8266) && !defined(MICROBIT) && !defined(ARDUINO_ARCH_SAM)
     for (Value* v : valuesToFree) {
         delete v;
     }
@@ -697,7 +726,7 @@ VM::~VM() {
         delete[] i.second;
     }
 #endif
-#if !__has_include("Arduino.h")
+#ifndef ARDUINO_HARDWARE
     for (auto& v : libs) {
         dlclose(v.second);
     }
