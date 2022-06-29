@@ -68,7 +68,7 @@ namespace VM_BINARIES {
         program = s.c_str();
         program.toNumber();
       } else if (t == 9) {
-        program = NUMBER(s.c_str());
+        program = NUMBER_FROM_STRING(s.c_str());
       } else {
         program = atof(s.c_str());
         program.setType(Types::SmallNumber);

@@ -19,20 +19,36 @@ VM::VM() {
 
 bool bundledLibCall(const Value& fileName, const Value& funcName, Value* args, int argc, Value*& res);
 
-void VM::_recorded_program_to_unsigned_long_array(unsigned long array[], const Value& prog, const int& progLength, const bool clone_) {
+void VM::_recorded_program_to_unsigned_long_array(unsigned long array[], const Value& prog, const int& progLength, const bool clone_, void** toFree, unsigned short* toFreeCount) {
     bool isData = false;
+    unsigned char rec = 0;
     for (int i = 0; i < progLength; i++) {
         const Value& item = prog[i];
         if (!isData) {
-            array[i] = (int) item;
-            if (NEEDS_PARAMETER(array[i])) {
+            int intVersion = item;
+            array[i] = intVersion;
+            if (i < progLength - 1 && prog[i + 1].getType() != Types::Ptr && (intVersion == OPCODE_GETVAR || intVersion == OPCODE_SETVAR || intVersion == OPCODE_INCREASE || intVersion == OPCODE_DECREASE || intVersion == OPCODE_INPLACE_MUL || intVersion == OPCODE_INPLACE_DIV || intVersion == OPCODE_INPLACE_MOD || intVersion == OPCODE_INPLACE_POW || intVersion == OPCODE_INPLACE_AND || intVersion == OPCODE_INPLACE_OR || intVersion == OPCODE_INPLACE_LSHIFT || intVersion == OPCODE_INPLACE_RSHIFT || intVersion == OPCODE_INPLACE_XOR)) {
+                i++;
+                Value* ptr = new Value((long) &mem.get(prog[i]));
+                ptr->setType(Types::Ptr);
+                array[i] = (unsigned long) ptr;
+#if !defined(USE_ARDUINO_ARRAY) && !defined(ESP32) && !defined(ESP8266) && !defined(MICROBIT) && !defined(ARDUINO_ARCH_SAM)
+                if (!clone_) valuesToFree.push_back(ptr);
+                else if (toFree) toFree[(*toFreeCount)++] = (void*) array[i];
+#endif
+            } else if (NEEDS_PARAMETER(intVersion)) {
                 isData = true;
+            } else if (intVersion == OPCODE_REC) {
+                rec++;
+            } else if (intVersion == OPCODE_END) {
+                rec--;
             }
         } else {
 #if !defined(USE_ARDUINO_ARRAY) && !defined(ESP32) && !defined(ESP8266) && !defined(MICROBIT) && !defined(ARDUINO_ARCH_SAM)
             if (clone_) {
                 array[i] = (unsigned long) new Value(item);
-                valuesToFree.push_back((Value*) array[i]);
+                ((Value*) array[i])->clone();
+                if (!rec) valuesToFree.push_back((Value*) array[i]);
             } else
 #endif
             array[i] = (unsigned long) &item;
@@ -52,7 +68,6 @@ void VM::_run_program_from_unsigned_long_array(unsigned long array[], const unsi
                 Value& prog = stackTOP;
                 array[i] = (unsigned long) new Value(prog);
                 if (toFree) toFree[(*toFreeCount)++] = (void*) array[i];
-                if (NEEDS_PARAMETER(array[i - 2])) delete (Value*) array[i - 1];
                 array[i - 1] = OPCODE_PUT;
                 int l = prog.length();
                 for (int j = 0; j < l; j++) {
@@ -61,6 +76,10 @@ void VM::_run_program_from_unsigned_long_array(unsigned long array[], const unsi
             }
         }
         if (flowControlFlags) break;
+        if (skip) {
+            i += skip;
+            skip = 0;
+        }
     }
 }
 
@@ -220,16 +239,32 @@ bool VM::run1(int opcode, const Value& data) {
         break;
     }
     case OPCODE_SETVAR: {
+        if (data.getType() == Types::Ptr) {
+            Value& v = *((Value*) (unsigned long) (long) data);
+            v = pop();
+            return true;
+        }
         mem.put(data, pop());
         return true;
     }
     case OPCODE_GETVAR: {
+        if (data.getType() == Types::Ptr) {
+            Value& v = *((Value*) (unsigned long) (long) data);
+            bool clone = !(v.getType() == Types::Array || v.getType() == Types::Map || v.getType() == Types::Instance);
+            append(v, clone);
+            return true;
+        }
         const Value& v = mem.get(data);
         bool clone = !(v.getType() == Types::Array || v.getType() == Types::Map || v.getType() == Types::Instance);
         append(v, clone);
         return true;
     }
     case OPCODE_INCREASE: {
+        if (data.getType() == Types::Ptr) {
+            Value& v = *((Value*) (unsigned long) (long) data);
+            v += pop();
+            return true;
+        }
         mem.get(data) += pop();
         return true;
     }
@@ -331,11 +366,16 @@ bool VM::run1(int opcode, const Value& data) {
     }
     case OPCODE_SKIPIFN: {
         const Value& v = pop();
-        if (!v) skip = (unsigned short) ((int) data);
+        if (!v) skip = (short) ((int) data);
+        return true;
+    }
+    case OPCODE_SKIPIF: {
+        const Value& v = pop();
+        if (v) skip = (short) ((int) data);
         return true;
     }
     case OPCODE_SKIP: {
-        skip = (unsigned short) ((int) data);
+        skip = (short) ((int) data);
         return true;
     }
     case OPCODE_WHILET: {
@@ -366,21 +406,21 @@ bool VM::run1(int opcode, const Value& data) {
     }
     case OPCODE_WHILE: {
         const Value& cond = pop();
-        const Value& prog = pop();
+        Value prog = pop();
         int condLength = cond.length();
         int progLength = prog.length();
         unsigned long condOpcodes[condLength];
         unsigned long progOpcodes[progLength];
-        _recorded_program_to_unsigned_long_array(condOpcodes, cond, condLength);
-        _recorded_program_to_unsigned_long_array(progOpcodes, prog, progLength);
 
         unsigned short freeCountCond = 0, freeCountProg = 0;
 
         void** toFreeCond = new void*[progLength / 2];
+        void** toFree = new void*[progLength / 2];
+
+        _recorded_program_to_unsigned_long_array(condOpcodes, cond, condLength, false, toFreeCond, &freeCountCond);
+        _recorded_program_to_unsigned_long_array(progOpcodes, prog, progLength, false, toFree, &freeCountProg);
 
         _run_program_from_unsigned_long_array(condOpcodes, condLength, toFreeCond, &freeCountCond);
-
-        void** toFree = new void*[progLength / 2];
 
         while (pop()) {
             _run_program_from_unsigned_long_array(progOpcodes, progLength, toFree, &freeCountProg);
@@ -425,7 +465,8 @@ bool VM::run1(int opcode, const Value& data) {
         return true;
     }
     case OPCODE_CALLFUNC: {
-        if (data.getType() == Types::Null || data.getType() == Types::False) { // null -> print, false -> println
+        char dataType = (char) data.getType();
+        if (dataType == (char) Types::Null || dataType == (char) Types::False) { // null -> print, false -> println
             const Value& v = stackTOP;
             if (v.getType() == Types::Instance) {
                 const Value& toStr = "#toString";
@@ -473,7 +514,7 @@ bool VM::run1(int opcode, const Value& data) {
                     }
                     if (!sep) std::cout << '\n';
                     std::cout << "}";
-                    if (data == Types::False) {
+                    if (dataType == (char) Types::False) {
                         std::cout << std::endl;
                     }
 #endif
@@ -493,7 +534,7 @@ bool VM::run1(int opcode, const Value& data) {
                     }
                     if (!sep) Serial.println();
                     Serial.print("}");
-                    if (data == Types::False) {
+                    if (dataType == (char) Types::False) {
                         Serial.println();
                     }
 #endif
@@ -503,17 +544,17 @@ bool VM::run1(int opcode, const Value& data) {
             }
 #ifdef ARDUINO_HARDWARE
             Serial.print(pop().toString().c_str());
-            if (data == Types::False) {
+            if (dataType == (char) Types::False) {
                 Serial.println();
             }
 #else
             std::cout << pop().toString();
-            if (data == Types::False) {
-                std::cout << std::endl;
+            if (dataType == (char) Types::False) {
+                std::cout << '\n';
             }
 #endif
             break;
-        } else if (data.getType() == Types::True) { // -> input
+        } else if (dataType == (char) Types::True) { // -> input
             TEXT a;
 #ifndef ARDUINO_HARDWARE
             std::getline(std::cin, a);
@@ -532,7 +573,7 @@ bool VM::run1(int opcode, const Value& data) {
         }
 #if !defined(USE_ARDUINO_ARRAY) && !defined(ESP32) && !defined(ESP8266) && !defined(MICROBIT) && !defined(ARDUINO_ARCH_SAM)
         unsigned long* prog;
-        if (data.getType() == Types::FuncPtr) {
+        if (dataType == (char) Types::FuncPtr) {
             prog = (unsigned long*) (unsigned long) (double) data;
         } else {
             prog = functions[data];

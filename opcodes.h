@@ -14,15 +14,15 @@
 #define OPCODE_REC              10
 #define OPCODE_END              11
 // #define OPCODE_IF            12
-// #define OPCODE_SKIPIF        12 // not usefull
-#define OPCODE_SKIPIFN          12 // skip if top of stack is not true (useful to skip else condition)
-#define OPCODE_WHILE            13
-#define OPCODE_NEQ              14 // not equal (!=)
-#define OPCODE_EQ               15 // equal (==)
-#define OPCODE_GT               16 // greater than
-#define OPCODE_GE               17 // greater than or equal
-#define OPCODE_LT               18 // less than
-#define OPCODE_LE               19 // less than or equal
+#define OPCODE_SKIPIF           12 // used in nested while loops
+#define OPCODE_SKIPIFN          13 // skip if top of stack is not true (useful to skip else condition)
+#define OPCODE_WHILE            14
+#define OPCODE_NEQ              15 // not equal (!=)
+#define OPCODE_EQ               16 // equal (==)
+#define OPCODE_GT               17 // greater than
+#define OPCODE_GE               18 // greater than or equal
+#define OPCODE_LT               19 // less than
+#define OPCODE_LE               20 // less than or equal
 #define OPCODE_LEQ              21 // looks equal
 #define OPCODE_AND              22 // AND (&&)
 #define OPCODE_OR               23 // OR (||)

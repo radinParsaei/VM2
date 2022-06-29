@@ -34,12 +34,13 @@
 #endif
 
 // define instance type for value
-#define __ADDITIONAL_TYPES__ Instance, FuncPtr
+#define __ADDITIONAL_TYPES__ Instance, FuncPtr, Ptr
 #define TREAT_AS_MAP(x) || x == Types::Instance
 #ifdef USE_ARDUINO_ARRAY
 #define TREAT_AS_ARRAY(x) || x == Types::FuncPtr // on arduino (with arduino array) it contains the recorded program
+#define TREAT_AS_NUMBER(x) || x == Types::Ptr
 #else
-#define TREAT_AS_NUMBER(x) || x == Types::FuncPtr // elsewhere it will save pointer to function
+#define TREAT_AS_NUMBER(x) || x == Types::Ptr || x == Types::FuncPtr // elsewhere it will save pointer to function
 #endif
 
 #include "value.h"
@@ -68,7 +69,7 @@ private:
     std::unordered_map<std::string, void*> libs;
 #endif
     void _run_program_from_unsigned_long_array(unsigned long array[], const unsigned int& len, void** toFree = 0, unsigned short* toFreeCount = 0);
-    void _recorded_program_to_unsigned_long_array(unsigned long array[], const Value& prog, const int& progLength, const bool clone_ = false);
+    void _recorded_program_to_unsigned_long_array(unsigned long array[], const Value& prog, const int& progLength, const bool clone_ = false, void** toFree = 0, unsigned short* toFreeCount = 0);
 #if !defined(USE_ARDUINO_ARRAY) && !defined(ESP32) && !defined(ESP8266) && !defined(MICROBIT) && !defined(ARDUINO_ARCH_SAM)
     std::unordered_map<Value, unsigned long*, HashFunction> functions;
     unsigned long* lastFunc; // used in OPCODE_GETPTRTOLASTFUNC (useful while creating classes)
@@ -89,7 +90,7 @@ private:
     unsigned char rec = 0;
     Value params = Types::Array; // holds function parameters
     char flowControlFlags = 0;
-    unsigned short skip = 0;
+    short skip = 0;
     Value classes = Types::Map;
     Value self;
 public:

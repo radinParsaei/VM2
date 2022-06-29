@@ -34,6 +34,7 @@ Value disassemble(int prog, Value val) {
     case OPCODE_CALLFUNC:         { TEXT t = "CALLFUNC\t"; addValue(t, val); return t; }
     case OPCODE_GETPARAM:         { TEXT t = "GETPARAM\t"; addValue(t, val); return t; }
     case OPCODE_SKIPIFN:          { TEXT t = "SKIPIFN\t"; addValue(t, val); return t; }
+    case OPCODE_SKIP:             { TEXT t = "SKIP\t"; addValue(t, val); return t; }
     case OPCODE_CREATE_CLASS:     { TEXT t = "CREATE_CLASS\t"; addValue(t, val); return t; }
     case OPCODE_CREATE_INSTANCE:  { TEXT t = "CREATE_INSTANCE\t"; addValue(t, val); return t; }
     case OPCODE_CALLFUNCFROMINS:  { TEXT t = "CALLFUNCFROMINS\t"; addValue(t, val); return t; }
@@ -85,7 +86,6 @@ Value disassemble(int prog, Value val) {
     case OPCODE_CONTINUE:         return "CONTINUE";
     case OPCODE_RETURN:           return "RETURN";
     case OPCODE_WHILET:           return "WHILET";
-    case OPCODE_SKIP:             return "SKIP";
     case OPCODE_THIS:             return "THIS";
     case OPCODE_GETPTRTOLASTFUNC: return "GETPTRTOLASTFUNC";
     default:                      return "???";
