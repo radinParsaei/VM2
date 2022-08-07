@@ -107,6 +107,10 @@ public:
 #endif
     }
 
+    inline Value getStackTop() {
+        return stackTOP;
+    }
+
     inline Value pop() {
 #if !defined(USE_ARDUINO_ARRAY) && !defined(ESP32) && !defined(ESP8266) && !defined(MICROBIT) && !defined(ARDUINO_ARCH_SAM)
         return stack[--top];
