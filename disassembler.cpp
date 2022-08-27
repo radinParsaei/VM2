@@ -27,6 +27,7 @@ Value disassemble(int prog, Value val) {
     case OPCODE_PUT:              { TEXT t = "PUT\t"; addValue(t, val); return t; }
     case OPCODE_SETVAR:           { TEXT t = "SETVAR\t"; addValue(t, val); return t; }
     case OPCODE_GETVAR:           { TEXT t = "GETVAR\t"; addValue(t, val); return t; }
+    case OPCODE_DELVAR:           { TEXT t = "DELVAR\t"; addValue(t, val); return t; }
     case OPCODE_CREATE_ARR:       { TEXT t = "CREATE_ARR\t"; addValue(t, val); return t; }
     case OPCODE_CREATE_MAP:       { TEXT t = "CREATE_MAP\t"; addValue(t, val); return t; }
     case OPCODE_INCREASE:         { TEXT t = "INCREASE\t"; addValue(t, val); return t; }
@@ -34,6 +35,7 @@ Value disassemble(int prog, Value val) {
     case OPCODE_CALLFUNC:         { TEXT t = "CALLFUNC\t"; addValue(t, val); return t; }
     case OPCODE_GETPARAM:         { TEXT t = "GETPARAM\t"; addValue(t, val); return t; }
     case OPCODE_SKIPIFN:          { TEXT t = "SKIPIFN\t"; addValue(t, val); return t; }
+    case OPCODE_SKIPIF:           { TEXT t = "SKIPIF\t"; addValue(t, val); return t; }
     case OPCODE_SKIP:             { TEXT t = "SKIP\t"; addValue(t, val); return t; }
     case OPCODE_CREATE_CLASS:     { TEXT t = "CREATE_CLASS\t"; addValue(t, val); return t; }
     case OPCODE_CREATE_INSTANCE:  { TEXT t = "CREATE_INSTANCE\t"; addValue(t, val); return t; }

@@ -19,7 +19,7 @@ VM::VM() {
 
 bool bundledLibCall(const Value& fileName, const Value& funcName, Value* args, int argc, Value*& res);
 
-void VM::_recorded_program_to_unsigned_long_array(unsigned long array[], const Value& prog, const int& progLength, const bool clone_, void** toFree, unsigned short* toFreeCount) {
+void VM::_recorded_program_to_unsigned_long_array(unsigned long array[], const Value& prog, const int progLength, const bool clone_, void** toFree, unsigned short* toFreeCount) {
     bool isData = false;
     unsigned char rec = 0;
     for (int i = 0; i < progLength; i++) {
@@ -57,7 +57,7 @@ void VM::_recorded_program_to_unsigned_long_array(unsigned long array[], const V
     }
 }
 
-void VM::_run_program_from_unsigned_long_array(unsigned long array[], const unsigned int& len, void** toFree, unsigned short* toFreeCount) {
+void VM::_run_program_from_unsigned_long_array(unsigned long array[], const unsigned int len, void** toFree, unsigned short* toFreeCount) {
     for (int i = 0; i < len; i++) {
         if (NEEDS_PARAMETER(array[i])) {
             run1(array[i], *(Value*) array[i + 1]);
@@ -257,6 +257,10 @@ bool VM::run1(int opcode, const Value& data) {
         const Value& v = mem.get(data);
         bool clone = !(v.getType() == Types::Array || v.getType() == Types::Map || v.getType() == Types::Instance);
         append(v, clone);
+        return true;
+    }
+    case OPCODE_DELVAR: {
+        mem.remove(data);
         return true;
     }
     case OPCODE_INCREASE: {

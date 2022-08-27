@@ -93,6 +93,10 @@ Value assemble(Value line) {
     prog.append(OPCODE_GETVAR);
     line = line.substring(6);
     readValue(prog, line);
+  } else if (line.startsWith("DELVAR")) {
+    prog.append(OPCODE_DELVAR);
+    line = line.substring(6);
+    readValue(prog, line);
   } else if (line.startsWith("#INPUT")) { // true -> input
     prog.append(OPCODE_CALLFUNC);
     prog.append(Types::True);
@@ -108,14 +112,14 @@ Value assemble(Value line) {
     prog.append(Types::Null);
   // } else if (line.startsWith("IF")) {
   //   prog.append(OPCODE_IF);
-  } else if (line.startsWith("SKIPIFN")) {
-    prog.append(OPCODE_SKIPIFN);
-    line = line.substring(7);
+  } else if (line.startsWith("SKIPIF")) {
+    prog.append(OPCODE_SKIPIF);
+    line = line.substring(6);
     readValue(prog, line);
-  // } else if (line.startsWith("SKIPIF")) {
-  //   prog.append(OPCODE_SKIPIF);
-  //   line = line.substring(6);
-  //   readValue(prog, line);
+   } else if (line.startsWith("SKIPIFN")) {
+     prog.append(OPCODE_SKIPIFN);
+     line = line.substring(7);
+     readValue(prog, line);
   } else if (line.startsWith("WHILET")) {
     prog.append(OPCODE_WHILET);
   } else if (line.startsWith("WHILE")) {
@@ -124,10 +128,10 @@ Value assemble(Value line) {
     prog.append(OPCODE_REC);
   } else if (line.startsWith("END")) {
     prog.append(OPCODE_END);
-  } else if (line.startsWith("NEQ")) {
-    prog.append(OPCODE_NEQ);
   } else if (line.startsWith("EQ")) {
     prog.append(OPCODE_EQ);
+  } else if (line.startsWith("NEQ")) {
+    prog.append(OPCODE_NEQ);
   } else if (line.startsWith("GT")) {
     prog.append(OPCODE_GT);
   } else if (line.startsWith("GETPARAM")) {

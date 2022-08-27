@@ -61,15 +61,15 @@ typedef Value* (__stdcall *dlfunc)(Value*, int);
 typedef Value* (*dlfunc)(Value*, int);
 #endif
 
-#define NEEDS_PARAMETER(opcode) opcode == OPCODE_PUT || opcode == OPCODE_GETVAR || opcode == OPCODE_SETVAR || opcode == OPCODE_CREATE_ARR || opcode == OPCODE_CREATE_MAP || opcode == OPCODE_INCREASE || opcode == OPCODE_MKFUNC || opcode == OPCODE_CALLFUNC || opcode == OPCODE_GETPARAM || opcode == OPCODE_SKIPIFN || opcode == OPCODE_SKIP || opcode == OPCODE_CREATE_CLASS || opcode == OPCODE_CREATE_INSTANCE || opcode == OPCODE_CALLFUNCFROMINS || opcode == OPCODE_CALLMETHOD || opcode == OPCODE_IS || opcode == OPCODE_DECREASE || opcode == OPCODE_INPLACE_MUL || opcode == OPCODE_INPLACE_DIV || opcode == OPCODE_INPLACE_MOD || opcode == OPCODE_INPLACE_POW || opcode == OPCODE_INPLACE_AND || opcode == OPCODE_INPLACE_OR || opcode == OPCODE_INPLACE_LSHIFT || opcode == OPCODE_INPLACE_RSHIFT || opcode == OPCODE_INPLACE_XOR || opcode == OPCODE_DLCALL
+#define NEEDS_PARAMETER(opcode) opcode == OPCODE_PUT || opcode == OPCODE_GETVAR || opcode == OPCODE_DELVAR || opcode == OPCODE_SETVAR || opcode == OPCODE_CREATE_ARR || opcode == OPCODE_CREATE_MAP || opcode == OPCODE_INCREASE || opcode == OPCODE_MKFUNC || opcode == OPCODE_CALLFUNC || opcode == OPCODE_GETPARAM || opcode == OPCODE_SKIPIFN || opcode == OPCODE_SKIPIF || opcode == OPCODE_SKIP || opcode == OPCODE_CREATE_CLASS || opcode == OPCODE_CREATE_INSTANCE || opcode == OPCODE_CALLFUNCFROMINS || opcode == OPCODE_CALLMETHOD || opcode == OPCODE_IS || opcode == OPCODE_DECREASE || opcode == OPCODE_INPLACE_MUL || opcode == OPCODE_INPLACE_DIV || opcode == OPCODE_INPLACE_MOD || opcode == OPCODE_INPLACE_POW || opcode == OPCODE_INPLACE_AND || opcode == OPCODE_INPLACE_OR || opcode == OPCODE_INPLACE_LSHIFT || opcode == OPCODE_INPLACE_RSHIFT || opcode == OPCODE_INPLACE_XOR || opcode == OPCODE_DLCALL
 
 class VM {
 private:
 #if !__has_include("Arduino.h")
     std::unordered_map<std::string, void*> libs;
 #endif
-    void _run_program_from_unsigned_long_array(unsigned long array[], const unsigned int& len, void** toFree = 0, unsigned short* toFreeCount = 0);
-    void _recorded_program_to_unsigned_long_array(unsigned long array[], const Value& prog, const int& progLength, const bool clone_ = false, void** toFree = 0, unsigned short* toFreeCount = 0);
+    void _run_program_from_unsigned_long_array(unsigned long array[], const unsigned int len, void** toFree = 0, unsigned short* toFreeCount = 0);
+    void _recorded_program_to_unsigned_long_array(unsigned long array[], const Value& prog, const int progLength, const bool clone_ = false, void** toFree = 0, unsigned short* toFreeCount = 0);
 #if !defined(USE_ARDUINO_ARRAY) && !defined(ESP32) && !defined(ESP8266) && !defined(MICROBIT) && !defined(ARDUINO_ARCH_SAM)
     std::unordered_map<Value, unsigned long*, HashFunction> functions;
     unsigned long* lastFunc; // used in OPCODE_GETPTRTOLASTFUNC (useful while creating classes)
