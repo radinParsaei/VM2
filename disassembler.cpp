@@ -95,6 +95,7 @@ Value disassemble(int prog, Value val) {
   }
 }
 
+#ifndef EXCLUDE_MAIN
 int main(int argc, char const *argv[]) {
   if (argc < 2) {
     cerr << "please enter a binary file name\n";
@@ -126,3 +127,4 @@ int main(int argc, char const *argv[]) {
   f.close();
 	return 0;
 }
+#endif

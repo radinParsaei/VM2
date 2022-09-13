@@ -83,6 +83,16 @@ void VM::_run_program_from_unsigned_long_array(unsigned long array[], const unsi
     }
 }
 
+Value& getFromClass(Value instance, Value item) {
+    while (instance != Types::Null) {
+        if (instance.containsKey(item)) {
+            return instance[item];
+        }
+        instance = instance.get(Types::True);
+    }
+    return __NULL__;
+}
+
 void VM::run(const Value& program) {
     size_t s = program.length();
     for (int i = 0; i < s; i++) {
@@ -335,8 +345,13 @@ bool VM::run1(int opcode, const Value& data) {
     case OPCODE_GET: {
         const Value& i = pop();
         const Value& arr = pop();
+        if (arr.getType() == Types::Instance) {
+            const Value& v = getFromClass(arr, i);
+            append(v, false);
+            break;
+        }
         const Value& v = arr[i];
-        bool clone = !(v.getType() == Types::Array || v.getType() == Types::Map || v.getType() == Types::Instance);
+        bool clone = !(v.getType() == Types::Array || v.getType() == Types::Map);
         append(v, clone);
         break;
     }
@@ -358,6 +373,20 @@ bool VM::run1(int opcode, const Value& data) {
         //   1
         //   2
         Value& arr = stackTOP;
+        if (arr.getType() == Types::Instance) {
+            Value* res;
+            Value instance = arr;
+            while (instance != Types::Null) {
+                if (instance.containsKey(i)) {
+                    res = &instance;
+                    break;
+                }
+                instance = instance.get(Types::True);
+            }
+            instance.copyBeforeModification = false;
+            instance[i] = v;
+            break;
+        }
         arr.copyBeforeModification = false;
         arr[i] = v;
         break;
@@ -474,9 +503,22 @@ bool VM::run1(int opcode, const Value& data) {
             const Value& v = stackTOP;
             if (v.getType() == Types::Instance) {
                 const Value& toStr = "#toString";
-                if (v.containsKey(toStr)) {
-                    run1(OPCODE_CALLMETHOD, toStr);
+                const Value& tmp = self;
+                self = pop();
+                Value instance = self;
+                Value* func;
+                while (self != Types::Null) {
+                    if (self.containsKey(toStr)) {
+                        func = &self[toStr];
+                        break;
+                    }
+                    self = self.get(Types::True);
+                }
+                if (func) {
+                    run1(OPCODE_CALLFUNC, *func);
+                    self = tmp;
                 } else {
+                    self = tmp;
 #ifndef USE_NOSTD_MAP
 #ifdef ARDUINO_HARDWARE
                     Serial.println("{\n");
@@ -635,12 +677,10 @@ bool VM::run1(int opcode, const Value& data) {
         v.copyBeforeModification = false;
         v.setType(Types::Instance);
         if (v.containsKey(Types::False)) {
-            const Value& parents = v.get(Types::False);
-            for (char i = 0; i < parents.length(); i++) {
-                for (short j = 0; j < classes.get(parents[i]).length(); j++) {
-                    const Value& key = classes.get(parents[i]).getKeyAt(j);
-                    if (!v.containsKey(key)) v.set(key, classes.get(parents[i]).getValueAt(j));
-                }
+            v.set(Types::True, Types::Map);
+            const Value& parent = v.get(Types::False);
+            for (short i = 0; i < classes.get(parent).length(); i++) {
+                v.get(Types::True).set(classes.get(parent).getKeyAt(i), classes.get(parent).getValueAt(i));
             }
         }
         v.put(Types::Null, data);
@@ -649,9 +689,7 @@ bool VM::run1(int opcode, const Value& data) {
     }
     case OPCODE_CREATE_INSTANCE: {
         append(classes[data], true);
-        if (stackTOP.containsKey("<init>")) {
-            run1(OPCODE_CALLMETHOD, "<init>");
-        }
+        run1(OPCODE_CALLMETHOD, "<init>");
         return true;
     }
     case OPCODE_CALLFUNCFROMINS: {
@@ -663,11 +701,20 @@ bool VM::run1(int opcode, const Value& data) {
     }
     case OPCODE_CALLMETHOD: {
         const Value& tmp = self;
-        if (data.startsWith("<"))
-            self = stackTOP;
-        else
-            self = pop();
-        run1(OPCODE_CALLFUNC, self.get(data));
+        self = pop();
+        Value instance = self;
+        Value* func;
+        while (self != Types::Null) {
+            if (self.containsKey(data)) {
+                func = &self[data];
+                break;
+            }
+            self = self.get(Types::True);
+        }
+        if (!func) goto method_call_exit;
+        run1(OPCODE_CALLFUNC, *func);
+        method_call_exit:
+        if (data.startsWith("<")) append(instance, false);
         self = tmp;
         return true;
     }

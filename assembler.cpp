@@ -22,7 +22,7 @@ void readValue(Value& prog, Value& line) {
     while (!(isdigit(line.charAt(i)) || line.charAt(i) == '.' || line.charAt(i) == '-')) i++;
     line = line.substring(i);
     line = line.trim();
-    prog.append(NUMBER(line.toString()));
+    prog.append(NUMBER_FROM_STRING(line.toString().c_str()));
   } else if (line.startsWith("SNUM")) {
     line = line.substring(4);
     int i = 0;
@@ -112,13 +112,13 @@ Value assemble(Value line) {
     prog.append(Types::Null);
   // } else if (line.startsWith("IF")) {
   //   prog.append(OPCODE_IF);
-  } else if (line.startsWith("SKIPIF")) {
-    prog.append(OPCODE_SKIPIF);
-    line = line.substring(6);
+  } else if (line.startsWith("SKIPIFN")) {
+    prog.append(OPCODE_SKIPIFN);
+    line = line.substring(7);
     readValue(prog, line);
-   } else if (line.startsWith("SKIPIFN")) {
-     prog.append(OPCODE_SKIPIFN);
-     line = line.substring(7);
+  } else if (line.startsWith("SKIPIF")) {
+     prog.append(OPCODE_SKIPIF);
+     line = line.substring(6);
      readValue(prog, line);
   } else if (line.startsWith("WHILET")) {
     prog.append(OPCODE_WHILET);
